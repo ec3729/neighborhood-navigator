@@ -188,6 +188,9 @@ export default function Locations() {
   const canCreate = hasRole("surveyor") || hasRole("admin");
   const isAdmin = hasRole("admin");
 
+  const surveyorMap = new Map(surveyors.map((s) => [s.user_id, s.full_name || "Unnamed User"]));
+  const colCount = isAdmin ? 7 : 6;
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -393,13 +396,14 @@ export default function Locations() {
                 <TableHead>Address</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="hidden lg:table-cell">Assigned To</TableHead>
                 <TableHead className="hidden md:table-cell">Added</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 5 : 4} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={colCount} className="text-center text-muted-foreground py-8">
                     No locations found. Add your first location to get started.
                   </TableCell>
                 </TableRow>
@@ -420,6 +424,9 @@ export default function Locations() {
                       <Badge variant="secondary" className={statusColors[loc.status]}>
                         {loc.status.replace(/_/g, " ")}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-muted-foreground">
+                      {loc.assigned_to ? surveyorMap.get(loc.assigned_to) || "Unknown" : <span className="text-muted-foreground/50">Unassigned</span>}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
                       {new Date(loc.created_at).toLocaleDateString()}
