@@ -60,6 +60,7 @@ export default function Locations() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [assignFilter, setAssignFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newAddress, setNewAddress] = useState("");
   const [newType, setNewType] = useState<LocationType>("residential");
@@ -182,7 +183,10 @@ export default function Locations() {
   const filtered = locations.filter((l) => {
     const matchesSearch = l.address.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || l.location_type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesAssign =
+      assignFilter === "all" ||
+      (assignFilter === "unassigned" ? !l.assigned_to : l.assigned_to === assignFilter);
+    return matchesSearch && matchesType && matchesAssign;
   });
 
   const canCreate = hasRole("surveyor") || hasRole("admin");
@@ -331,6 +335,16 @@ export default function Locations() {
             <SelectItem value="all">All Types</SelectItem>
             {Object.entries(typeLabels).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={assignFilter} onValueChange={setAssignFilter}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All assignments" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Assignments</SelectItem>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
+            {surveyors.map((s) => (
+              <SelectItem key={s.user_id} value={s.user_id}>{s.full_name || "Unnamed User"}</SelectItem>
             ))}
           </SelectContent>
         </Select>
