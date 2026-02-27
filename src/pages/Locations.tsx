@@ -77,6 +77,8 @@ export default function Locations() {
   // Surveyors for assignment
   const [surveyors, setSurveyors] = useState<Surveyor[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
 
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
@@ -194,6 +196,14 @@ export default function Locations() {
 
   const surveyorMap = new Map(surveyors.map((s) => [s.user_id, s.full_name || "Unnamed User"]));
   const colCount = isAdmin ? 7 : 6;
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -415,14 +425,14 @@ export default function Locations() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 ? (
+              {paginatedRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={colCount} className="text-center text-muted-foreground py-8">
                     No locations found. Add your first location to get started.
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((loc) => (
+                paginatedRows.map((loc) => (
                   <TableRow key={loc.id} data-state={selectedIds.has(loc.id) ? "selected" : undefined}>
                     {isAdmin && (
                       <TableCell>
@@ -452,6 +462,44 @@ export default function Locations() {
           </Table>
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Showing {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filtered.length)} of {filtered.length}
+          </span>
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setCurrentPage(safePage - 1)}>
+              Previous
+            </Button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+              .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, idx) =>
+                item === "ellipsis" ? (
+                  <span key={`e${idx}`} className="px-2 text-sm text-muted-foreground self-center">…</span>
+                ) : (
+                  <Button
+                    key={item}
+                    variant={item === safePage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(item)}
+                    className="min-w-[2.25rem]"
+                  >
+                    {item}
+                  </Button>
+                )
+              )}
+            <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setCurrentPage(safePage + 1)}>
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
