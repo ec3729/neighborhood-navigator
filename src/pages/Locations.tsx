@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Search, Upload, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Plus, Search, Upload, AlertCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
@@ -60,6 +62,9 @@ export default function Locations() {
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  // Bulk delete state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
@@ -157,6 +162,32 @@ export default function Locations() {
 
   const canCreate = hasRole("surveyor") || hasRole("admin");
   const isAdmin = hasRole("admin");
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((l) => l.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("locations").delete().in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Deleted ${ids.length} location(s).`);
+    setSelectedIds(new Set());
+    fetchLocations();
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-4">
@@ -262,11 +293,40 @@ export default function Locations() {
         </Select>
       </div>
 
+      {isAdmin && selectedIds.size > 0 && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-2" /> Delete Selected</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {selectedIds.size} location(s)?</AlertDialogTitle>
+                <AlertDialogDescription>This action cannot be undone. All selected locations and their associated data will be permanently removed.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleBulkDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                {isAdmin && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                )}
                 <TableHead>Address</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
@@ -276,13 +336,21 @@ export default function Locations() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={isAdmin ? 5 : 4} className="text-center text-muted-foreground py-8">
                     No locations found. Add your first location to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((loc) => (
-                  <TableRow key={loc.id}>
+                  <TableRow key={loc.id} data-state={selectedIds.has(loc.id) ? "selected" : undefined}>
+                    {isAdmin && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(loc.id)}
+                          onCheckedChange={() => toggleSelect(loc.id)}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="font-medium">{loc.address}</TableCell>
                     <TableCell>{typeLabels[loc.location_type]}</TableCell>
                     <TableCell>
