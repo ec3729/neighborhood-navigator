@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, Upload, AlertCircle, Trash2 } from "lucide-react";
+import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
@@ -25,7 +26,13 @@ interface Location {
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
+  assigned_to: string | null;
   created_at: string;
+}
+
+interface Surveyor {
+  user_id: string;
+  full_name: string | null;
 }
 
 const typeLabels: Record<LocationType, string> = {
@@ -63,15 +70,33 @@ export default function Locations() {
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  // Bulk delete state
+  // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Surveyors for assignment
+  const [surveyors, setSurveyors] = useState<Surveyor[]>([]);
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
     if (data) setLocations(data as Location[]);
   };
 
-  useEffect(() => { fetchLocations(); }, []);
+  const fetchSurveyors = async () => {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["surveyor", "admin"]);
+    if (!roles || roles.length === 0) return;
+    const userIds = [...new Set(roles.map((r) => r.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, full_name")
+      .in("user_id", userIds);
+    if (profiles) setSurveyors(profiles);
+  };
+
+  useEffect(() => { fetchLocations(); fetchSurveyors(); }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +214,21 @@ export default function Locations() {
     fetchLocations();
   };
 
+  const handleBulkAssign = async (surveyorId: string) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from("locations")
+      .update({ assigned_to: surveyorId })
+      .in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    const surveyor = surveyors.find((s) => s.user_id === surveyorId);
+    toast.success(`Assigned ${ids.length} location(s) to ${surveyor?.full_name || "surveyor"}.`);
+    setSelectedIds(new Set());
+    setAssignOpen(false);
+    fetchLocations();
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
@@ -296,6 +336,29 @@ export default function Locations() {
       {isAdmin && selectedIds.size > 0 && (
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
+          <Popover open={assignOpen} onOpenChange={setAssignOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm"><UserCheck className="h-4 w-4 mr-2" /> Assign Surveyor</Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1">Select a surveyor</p>
+                {surveyors.length === 0 ? (
+                  <p className="text-xs text-muted-foreground px-2 py-2">No surveyors found.</p>
+                ) : (
+                  surveyors.map((s) => (
+                    <button
+                      key={s.user_id}
+                      onClick={() => handleBulkAssign(s.user_id)}
+                      className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                    >
+                      {s.full_name || "Unnamed User"}
+                    </button>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-2" /> Delete Selected</Button>
