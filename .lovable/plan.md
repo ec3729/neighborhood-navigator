@@ -1,64 +1,45 @@
 
-# Neighborhood Canvassing & Survey App
 
-## Overview
-A comprehensive field surveying tool for large organizations to systematically canvass neighborhoods, record property data, and manage survey teams — with both map and list views.
+## CSV Upload for Bulk Location Import (Admin Only)
 
----
+### Overview
+Add a CSV upload button to the Locations page that allows admins to bulk-import addresses. The CSV is parsed client-side, validated, and inserted into the `locations` table.
 
-## Phase 1: Core Foundation
+### Expected CSV Format
+- A simple CSV with at minimum an `address` column
+- Optional columns: `location_type` (residential, business, vacant, public_space)
+- If `location_type` is missing or invalid, default to `residential`
 
-### 1. Authentication & User Management
-- Sign up / login for all organization members
-- User roles: **Admin**, **Surveyor**, **Viewer**
-- Admins can invite members and assign roles
+### UI Changes (Locations.tsx)
+- Add an "Upload CSV" button next to the existing "Add Location" button, visible only to admins
+- Clicking opens a dialog with:
+  - A file input accepting `.csv` files
+  - A preview table showing parsed rows (address + type) before import
+  - Error summary for any invalid rows (e.g., missing address)
+  - An "Import X Locations" confirmation button
+- After import, show a toast with success/failure count and refresh the list
 
-### 2. Location Management
-- Add locations by entering an address or dropping a pin on a map
-- Location types: Residential, Business, Vacant, Public Space
-- Each location stores: address, type, GPS coordinates, status (surveyed / not surveyed)
+### Implementation Details
 
-### 3. Survey Data Collection
-- **Property condition**: Rating scale (excellent → poor) with notes on specific issues (damage, blight, maintenance)
-- **Resident / Owner info**: Name, contact info, occupancy status
-- **Business info**: Business name, type, hours, contact
-- **Custom survey questions**: Admins can create custom question templates with text, multiple choice, rating, and yes/no question types
-- **Photo uploads**: Attach multiple photos per location with optional captions
+**1. CSV Parsing (client-side)**
+- Read the file using `FileReader`
+- Split by newlines, parse headers, extract `address` and optional `location_type` columns
+- Validate: skip rows with empty addresses, normalize type values
+- No external library needed -- simple CSV parsing is sufficient for this use case
 
----
+**2. Bulk Insert**
+- Use `supabase.from("locations").insert(rows)` with `created_by` set to the current user ID
+- The existing RLS policy already allows admins to insert (via the `has_role` check)
+- Batch in groups of 100 to avoid payload limits
 
-## Phase 2: Views & Navigation
+**3. File: `src/pages/Locations.tsx`**
+- Add `Upload` icon import from lucide-react
+- Add state for CSV dialog, parsed rows, errors, and uploading status
+- Add a new Dialog component for the CSV upload flow
+- Add `handleCSVUpload` function for file reading and parsing
+- Add `handleBulkImport` function for inserting rows
 
-### 4. Map View
-- Interactive map showing all locations as color-coded pins (by type or survey status)
-- Click a pin to see a summary and navigate to the full record
-- Filter pins by location type, survey status, or assigned surveyor
+### Technical Details
 
-### 5. List View
-- Searchable, sortable table of all locations
-- Filter by type, status, surveyor, date range
-- Quick-view expandable rows with key details
+No database changes are needed -- the existing `locations` table and RLS policies support this feature. The insert policy allows admins and surveyors to create locations, so admin CSV uploads will work with current permissions.
 
-### 6. Location Detail Page
-- Full view of all collected data for a location
-- Survey history and edit log
-- Photo gallery
-
----
-
-## Phase 3: Team & Workflow Features
-
-### 7. Assignment & Tracking
-- Admins can assign areas or specific locations to surveyors
-- Dashboard showing survey progress: how many locations surveyed vs. remaining
-- Activity feed of recent submissions
-
-### 8. Data Export
-- Export survey data as CSV for reporting and analysis
-
----
-
-## Technical Approach
-- **Backend**: Lovable Cloud (Supabase) for database, authentication, file storage, and role management
-- **Map**: Leaflet (free, open-source) for interactive mapping
-- **Mobile-friendly**: Responsive design so surveyors can use it on phones in the field
