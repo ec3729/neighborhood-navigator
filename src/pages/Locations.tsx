@@ -18,11 +18,12 @@ import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
-type SortField = "address" | "location_type" | "status" | "assigned_to" | "created_at";
+type SortField = "name" | "address" | "location_type" | "status" | "assigned_to" | "created_at";
 type SortDir = "asc" | "desc";
 
 interface Location {
   id: string;
+  name: string | null;
   address: string;
   location_type: LocationType;
   status: SurveyStatus;
@@ -53,6 +54,7 @@ const statusColors: Record<SurveyStatus, string> = {
 };
 
 interface ParsedRow {
+  name?: string;
   address: string;
   location_type: LocationType;
 }
@@ -66,6 +68,7 @@ export default function Locations() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newAddress, setNewAddress] = useState("");
   const [newType, setNewType] = useState<LocationType>("residential");
+  const [newName, setNewName] = useState("");
 
   // CSV upload state
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
@@ -112,10 +115,12 @@ export default function Locations() {
       address: newAddress,
       location_type: newType,
       created_by: user.id,
+      ...(newName.trim() ? { name: newName.trim() } : {}),
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Location added");
     setNewAddress("");
+    setNewName("");
     setDialogOpen(false);
     fetchLocations();
   };
@@ -140,6 +145,7 @@ export default function Locations() {
         return;
       }
       const typeIdx = headers.indexOf("location_type");
+      const nameIdx = headers.indexOf("name");
       const rows: ParsedRow[] = [];
       const errors: string[] = [];
       for (let i = 1; i < lines.length; i++) {
@@ -155,7 +161,8 @@ export default function Locations() {
             errors.push(`Row ${i + 1}: invalid type "${cols[typeIdx]}", defaulting to residential.`);
           }
         }
-        rows.push({ address, location_type: locType });
+        const name = nameIdx !== -1 ? cols[nameIdx] || undefined : undefined;
+        rows.push({ address, location_type: locType, name });
       }
       setParsedRows(rows);
       setCsvErrors(errors);
@@ -174,6 +181,7 @@ export default function Locations() {
         address: r.address,
         location_type: r.location_type,
         created_by: user.id,
+        ...(r.name ? { name: r.name } : {}),
       }));
       const { error } = await supabase.from("locations").insert(batch);
       if (error) { failCount += batch.length; } else { successCount += batch.length; }
@@ -187,7 +195,8 @@ export default function Locations() {
   };
 
   const filtered = locations.filter((l) => {
-    const matchesSearch = l.address.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchesSearch = l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false);
     const matchesType = typeFilter === "all" || l.location_type === typeFilter;
     const matchesAssign =
       assignFilter === "all" ||
@@ -199,12 +208,15 @@ export default function Locations() {
   const isAdmin = hasRole("admin");
 
   const surveyorMap = new Map(surveyors.map((s) => [s.user_id, s.full_name || "Unnamed User"]));
-  const colCount = isAdmin ? 7 : 6;
+  const colCount = isAdmin ? 8 : 7;
 
   // Sorting
   const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
     switch (sortField) {
+      case "name":
+        cmp = (a.name || "").localeCompare(b.name || "");
+        break;
       case "address":
         cmp = a.address.localeCompare(b.address);
         break;
@@ -308,7 +320,7 @@ export default function Locations() {
                 <DialogHeader><DialogTitle className="font-display">Upload CSV</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Upload a CSV file with an <strong>address</strong> column and an optional <strong>location_type</strong> column.
+                    Upload a CSV file with an <strong>address</strong> column and optional <strong>name</strong> and <strong>location_type</strong> columns.
                   </p>
                   <Input type="file" accept=".csv" onChange={handleCSVFile} />
                   {csvErrors.length > 0 && (
@@ -360,6 +372,10 @@ export default function Locations() {
                 <DialogHeader><DialogTitle className="font-display">Add New Location</DialogTitle></DialogHeader>
                 <form onSubmit={handleAdd} className="space-y-4">
                   <div className="space-y-2">
+                    <Label>Name (optional)</Label>
+                    <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Joe's Coffee Shop" />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Address</Label>
                     <Input value={newAddress} onChange={(e) => setNewAddress(e.target.value)} placeholder="123 Main St" required />
                   </div>
@@ -385,7 +401,7 @@ export default function Locations() {
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search addresses..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-9" placeholder="Search names or addresses..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-44"><SelectValue placeholder="All types" /></SelectTrigger>
@@ -465,6 +481,9 @@ export default function Locations() {
                     />
                   </TableHead>
                 )}
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
+                  <span className="inline-flex items-center">Name<SortIcon field="name" /></span>
+                </TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("address")}>
                   <span className="inline-flex items-center">Address<SortIcon field="address" /></span>
                 </TableHead>
@@ -500,6 +519,7 @@ export default function Locations() {
                         />
                       </TableCell>
                     )}
+                    <TableCell className="text-muted-foreground">{loc.name || "—"}</TableCell>
                     <TableCell className="font-medium">{loc.address}</TableCell>
                     <TableCell>{typeLabels[loc.location_type]}</TableCell>
                     <TableCell>
