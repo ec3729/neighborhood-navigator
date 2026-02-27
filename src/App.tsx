@@ -12,6 +12,7 @@ import Locations from "./pages/Locations";
 import MapView from "./pages/MapView";
 import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
+import CanvasPage from "./pages/CanvasPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/map" element={<MapView />} />
               <Route path="/team" element={<TeamPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/canvas" element={<CanvasPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
