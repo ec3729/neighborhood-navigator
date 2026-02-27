@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck, ArrowUpDown, ArrowUp, ArrowDown, ClipboardList } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
@@ -60,6 +61,7 @@ interface ParsedRow {
 }
 
 export default function Locations() {
+  const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const [locations, setLocations] = useState<Location[]>([]);
   const [search, setSearch] = useState("");
@@ -311,6 +313,9 @@ export default function Locations() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold font-display">Locations</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/canvas")}>
+            <ClipboardList className="h-4 w-4 mr-2" /> Canvas
+          </Button>
           {isAdmin && (
             <Dialog open={csvDialogOpen} onOpenChange={(open) => { setCsvDialogOpen(open); if (!open) { setParsedRows([]); setCsvErrors([]); } }}>
               <DialogTrigger asChild>
