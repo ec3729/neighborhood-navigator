@@ -1,36 +1,46 @@
 
 
-## Add "Name" Field to Locations
+## Add "Canvas" Mode for Location Review
 
-### 1. Database Migration
-Add a nullable `name` column (text) to the `locations` table:
-```sql
-ALTER TABLE public.locations ADD COLUMN name text;
-```
+Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
 
-### 2. Update Location Interface and State
-- Add `name` to the `Location` interface in `Locations.tsx`
-- Add `newName` state for the "Add Location" form
+### How It Works
 
-### 3. Update "Add Location" Dialog
-- Add a "Name" input field (optional) above the address field
-- Include `name` in the insert call
+1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
+2. Opens a new page (`/canvas`) showing one location at a time as a large card
+3. The card displays: name, address, type, status, assigned surveyor, and coordinates
+4. User can either:
+   - Click **"Looks Good"** to confirm and move to the next location
+   - Edit any field inline and click **"Save & Next"** to update and advance
+   - Click **"Skip"** to move on without changes
+5. A progress bar at the top shows how many locations have been reviewed
+6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
 
-### 4. Update CSV Import
-- Support an optional `name` column in CSV uploads
-- Add `name` to `ParsedRow` interface and bulk insert logic
+### What Gets Built
 
-### 5. Update Table Display
-- Add a "Name" column to the table (before Address)
-- Make it sortable (add `"name"` to `SortField` type and sorting logic)
-- Include name in the search filter so users can search by name or address
-- Update `colCount` accordingly
+**New file: `src/pages/CanvasPage.tsx`**
+- Fetches all locations (respects current filters passed via URL search params or reviews all)
+- Maintains a `currentIndex` state to track position in the list
+- Displays an editable card with fields: name, address, location_type, status
+- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
+- "Save & Next" button updates the location in the database, then advances
+- "Skip" button advances without action
+- Progress bar using the existing Progress component
+- Summary card at the end with stats
 
-### 6. Update Existing Test Data
-- Update the 10 Chinatown business locations with appropriate business names (e.g., "Nom Wah Tea Parlor", "Wo Hop Restaurant", etc.)
+**Modified: `src/pages/Locations.tsx`**
+- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
+- Links to `/canvas` via `useNavigate`
 
-### Technical Notes
-- The `name` column is nullable so existing locations without names still work
-- The types file (`types.ts`) will auto-regenerate after the migration
-- No RLS policy changes needed -- existing policies cover the new column
+**Modified: `src/App.tsx`**
+- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
+
+### Technical Details
+
+- No database changes needed -- canvas mode reads/updates existing `locations` table
+- Uses existing RLS policies (surveyors and admins can update)
+- Editable fields use existing Input, Select, and Badge components
+- Navigation via keyboard shortcuts (left/right arrows) for power users
+- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
+- Mobile-friendly single-card layout
 
