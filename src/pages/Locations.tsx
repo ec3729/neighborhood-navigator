@@ -12,12 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck } from "lucide-react";
+import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
+type SortField = "address" | "location_type" | "status" | "assigned_to" | "created_at";
+type SortDir = "asc" | "desc";
 
 interface Location {
   id: string;
@@ -78,6 +80,8 @@ export default function Locations() {
   const [surveyors, setSurveyors] = useState<Surveyor[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const pageSize = 25;
 
   const fetchLocations = async () => {
@@ -197,10 +201,54 @@ export default function Locations() {
   const surveyorMap = new Map(surveyors.map((s) => [s.user_id, s.full_name || "Unnamed User"]));
   const colCount = isAdmin ? 7 : 6;
 
+  // Sorting
+  const sorted = [...filtered].sort((a, b) => {
+    let cmp = 0;
+    switch (sortField) {
+      case "address":
+        cmp = a.address.localeCompare(b.address);
+        break;
+      case "location_type":
+        cmp = a.location_type.localeCompare(b.location_type);
+        break;
+      case "status":
+        cmp = a.status.localeCompare(b.status);
+        break;
+      case "assigned_to": {
+        const nameA = a.assigned_to ? surveyorMap.get(a.assigned_to) || "" : "";
+        const nameB = b.assigned_to ? surveyorMap.get(b.assigned_to) || "" : "";
+        cmp = nameA.localeCompare(nameB);
+        break;
+      }
+      case "created_at":
+        cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        break;
+    }
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginatedRows = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+    setCurrentPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
 
   // Reset page when filters change
   useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter]);
@@ -417,11 +465,21 @@ export default function Locations() {
                     />
                   </TableHead>
                 )}
-                <TableHead>Address</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden lg:table-cell">Assigned To</TableHead>
-                <TableHead className="hidden md:table-cell">Added</TableHead>
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("address")}>
+                  <span className="inline-flex items-center">Address<SortIcon field="address" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("location_type")}>
+                  <span className="inline-flex items-center">Type<SortIcon field="location_type" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+                  <span className="inline-flex items-center">Status<SortIcon field="status" /></span>
+                </TableHead>
+                <TableHead className="hidden lg:table-cell cursor-pointer select-none" onClick={() => handleSort("assigned_to")}>
+                  <span className="inline-flex items-center">Assigned To<SortIcon field="assigned_to" /></span>
+                </TableHead>
+                <TableHead className="hidden md:table-cell cursor-pointer select-none" onClick={() => handleSort("created_at")}>
+                  <span className="inline-flex items-center">Added<SortIcon field="created_at" /></span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
