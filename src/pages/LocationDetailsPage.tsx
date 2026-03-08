@@ -73,6 +73,7 @@ export default function LocationDetailsPage() {
   const [editName, setEditName] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editType, setEditType] = useState("residential");
+  const [editStatus, setEditStatus] = useState("not_surveyed");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function LocationDetailsPage() {
     setEditName(location.name || "");
     setEditAddress(location.address);
     setEditType(location.location_type || "residential");
+    setEditStatus(location.status);
     setEditing(true);
   };
 
@@ -153,11 +155,12 @@ export default function LocationDetailsPage() {
         name: editName.trim() || null,
         address: editAddress.trim(),
         location_type: editType as any,
+        status: editStatus as any,
       })
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus });
     setEditing(false);
     toast.success("Location updated");
   };
@@ -235,9 +238,20 @@ export default function LocationDetailsPage() {
             <div>
               <dt className="text-muted-foreground">Status</dt>
               <dd className="mt-0.5">
-                <Badge variant="secondary" className={statusColors[location.status] || ""}>
-                  {location.status.replace(/_/g, " ")}
-                </Badge>
+                {editing ? (
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_surveyed">Not Surveyed</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="surveyed">Surveyed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="secondary" className={statusColors[location.status] || ""}>
+                    {location.status.replace(/_/g, " ")}
+                  </Badge>
+                )}
               </dd>
             </div>
             <div>
