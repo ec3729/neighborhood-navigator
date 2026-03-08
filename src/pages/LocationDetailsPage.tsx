@@ -238,9 +238,20 @@ export default function LocationDetailsPage() {
             <div>
               <dt className="text-muted-foreground">Status</dt>
               <dd className="mt-0.5">
-                <Badge variant="secondary" className={statusColors[location.status] || ""}>
-                  {location.status.replace(/_/g, " ")}
-                </Badge>
+                {editing ? (
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_surveyed">Not Surveyed</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="surveyed">Surveyed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="secondary" className={statusColors[location.status] || ""}>
+                    {location.status.replace(/_/g, " ")}
+                  </Badge>
+                )}
               </dd>
             </div>
             <div>
