@@ -265,9 +265,10 @@ export default function CanvasPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select value={editType} onValueChange={(v) => setEditType(v as LocationType)}>
+                <Select value={editType || "none"} onValueChange={(v) => setEditType(v === "none" ? null : v as LocationType)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">— None</SelectItem>
                     {Object.entries(typeLabels).map(([k, v]) => (
                       <SelectItem key={k} value={k}>{v}</SelectItem>
                     ))}
