@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, Plus, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronLeft, Plus, X, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface Zone {
@@ -33,6 +34,7 @@ export default function ZoneDetailsPage() {
   const isAdmin = hasRole("admin");
 
   const [zone, setZone] = useState<Zone | null>(null);
+  const [allZones, setAllZones] = useState<Zone[]>([]);
   const [assignedLocations, setAssignedLocations] = useState<Location[]>([]);
   const [unassignedLocations, setUnassignedLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +43,18 @@ export default function ZoneDetailsPage() {
   const [selectedToRemove, setSelectedToRemove] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [showUnzonedOnly, setShowUnzonedOnly] = useState(true);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
-    const [{ data: zoneData }, { data: allLocations }] = await Promise.all([
+    const [{ data: zoneData }, { data: allLocations }, { data: zonesData }] = await Promise.all([
       supabase.from("zones").select("id, name, description").eq("id", id).single(),
       supabase.from("locations").select("id, name, address, zone_id").order("address"),
+      supabase.from("zones").select("id, name, description").order("name"),
     ]);
     if (!zoneData) { toast.error("Zone not found"); navigate("/zones"); return; }
     setZone(zoneData as Zone);
+    setAllZones(((zonesData || []) as Zone[]).filter((z) => z.id !== id));
     const locs = (allLocations || []) as Location[];
     setAssignedLocations(locs.filter((l) => l.zone_id === id));
     setUnassignedLocations(locs.filter((l) => !l.zone_id || l.zone_id !== id));
@@ -67,6 +72,20 @@ export default function ZoneDetailsPage() {
     if (error) { toast.error(error.message); return; }
     toast.success(`Added ${ids.length} location(s) to zone`);
     setSelectedToAdd(new Set());
+    fetchData();
+  };
+
+  const handleReassign = async (targetZoneId: string) => {
+    if (selectedToRemove.size === 0) return;
+    setSaving(true);
+    const ids = Array.from(selectedToRemove);
+    const { error } = await supabase.from("locations").update({ zone_id: targetZoneId }).in("id", ids);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    const targetZone = allZones.find((z) => z.id === targetZoneId);
+    toast.success(`Reassigned ${ids.length} location(s) to ${targetZone?.name || "another zone"}`);
+    setSelectedToRemove(new Set());
+    setReassignOpen(false);
     fetchData();
   };
 
@@ -136,9 +155,36 @@ export default function ZoneDetailsPage() {
               <Badge variant="secondary" className="ml-2">{assignedLocations.length}</Badge>
             </CardTitle>
             {isAdmin && selectedToRemove.size > 0 && (
-              <Button variant="destructive" size="sm" onClick={handleRemove} disabled={saving}>
-                <X className="h-4 w-4 mr-1" /> Remove {selectedToRemove.size} selected
-              </Button>
+              <div className="flex items-center gap-2">
+                <Popover open={reassignOpen} onOpenChange={setReassignOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={saving || allZones.length === 0}>
+                      <ArrowRightLeft className="h-4 w-4 mr-1" /> Reassign {selectedToRemove.size} to…
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">Move to zone</p>
+                      {allZones.length === 0 ? (
+                        <p className="text-xs text-muted-foreground px-2 py-2">No other zones available.</p>
+                      ) : (
+                        allZones.map((z) => (
+                          <button
+                            key={z.id}
+                            onClick={() => handleReassign(z.id)}
+                            className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                          >
+                            {z.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button variant="destructive" size="sm" onClick={handleRemove} disabled={saving}>
+                  <X className="h-4 w-4 mr-1" /> Remove {selectedToRemove.size} selected
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
