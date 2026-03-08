@@ -146,7 +146,29 @@ export default function ZoneDetailsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                {isAdmin && <TableHead className="w-10" />}
+                {isAdmin && (
+                  <TableHead className="w-10">
+                    {assignedLocations.length > 0 && (
+                      <Checkbox
+                        checked={selectedToRemove.size === assignedLocations.length}
+                        ref={(el) => {
+                          if (el) {
+                            (el as unknown as HTMLButtonElement).dataset.state =
+                              selectedToRemove.size > 0 && selectedToRemove.size < assignedLocations.length
+                                ? "indeterminate" : selectedToRemove.size === assignedLocations.length ? "checked" : "unchecked";
+                          }
+                        }}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedToRemove(new Set(assignedLocations.map((l) => l.id)));
+                          } else {
+                            setSelectedToRemove(new Set());
+                          }
+                        }}
+                      />
+                    )}
+                  </TableHead>
+                )}
                 <TableHead>Name</TableHead>
                 <TableHead>Address</TableHead>
               </TableRow>
@@ -206,7 +228,33 @@ export default function ZoneDetailsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10" />
+                    <TableHead className="w-10">
+                      {filteredUnassigned.length > 0 && (() => {
+                        const visibleIds = filteredUnassigned.slice(0, 100).map((l) => l.id);
+                        const allSelected = visibleIds.every((id) => selectedToAdd.has(id));
+                        const someSelected = visibleIds.some((id) => selectedToAdd.has(id));
+                        return (
+                          <Checkbox
+                            checked={allSelected}
+                            ref={(el) => {
+                              if (el) {
+                                (el as unknown as HTMLButtonElement).dataset.state =
+                                  someSelected && !allSelected ? "indeterminate" : allSelected ? "checked" : "unchecked";
+                              }
+                            }}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedToAdd(new Set([...selectedToAdd, ...visibleIds]));
+                              } else {
+                                const next = new Set(selectedToAdd);
+                                visibleIds.forEach((id) => next.delete(id));
+                                setSelectedToAdd(next);
+                              }
+                            }}
+                          />
+                        );
+                      })()}
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Current Zone</TableHead>
