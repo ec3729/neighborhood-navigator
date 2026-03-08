@@ -133,7 +133,7 @@ export default function CanvasPage() {
       .update({
         name: editName.trim() || null,
         address: editAddress,
-        location_type: editType,
+        location_type: editType || null,
         status: editStatus,
       })
       .eq("id", current.id);

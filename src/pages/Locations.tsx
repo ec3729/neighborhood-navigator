@@ -527,7 +527,7 @@ export default function Locations() {
                     )}
                     <TableCell className="text-muted-foreground">{loc.name || "—"}</TableCell>
                     <TableCell className="font-medium">{loc.address}</TableCell>
-                    <TableCell>{typeLabels[loc.location_type]}</TableCell>
+                    <TableCell>{loc.location_type ? typeLabels[loc.location_type] : <span className="text-muted-foreground/50">—</span>}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={statusColors[loc.status]}>
                         {loc.status.replace(/_/g, " ")}
