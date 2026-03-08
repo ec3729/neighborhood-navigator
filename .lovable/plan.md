@@ -1,46 +1,46 @@
-## Sort Canvas Locations by Street Groups with Odd/Even Ordering
 
-### Overview
 
-Add a client-side sorting function to the Canvas page that reorders fetched locations before presenting them. The sort logic:
+## Add "Canvas" Mode for Location Review
 
-1. Parse each address to extract the house number and street name
-2. Group locations by street name
-3. Within each street, split into chunks of 10
-4. Within each chunk of 10, show odd-numbered addresses first (ascending), then even-numbered addresses (ascending)
+Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
 
-Add functionality to be able to pick different sorting functions.
+### How It Works
 
-### Changes
+1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
+2. Opens a new page (`/canvas`) showing one location at a time as a large card
+3. The card displays: name, address, type, status, assigned surveyor, and coordinates
+4. User can either:
+   - Click **"Looks Good"** to confirm and move to the next location
+   - Edit any field inline and click **"Save & Next"** to update and advance
+   - Click **"Skip"** to move on without changes
+5. A progress bar at the top shows how many locations have been reviewed
+6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
 
-`**src/pages/CanvasPage.tsx**`
+### What Gets Built
 
-Add a helper function `sortLocationsByStreetGroups(locations)` that:
+**New file: `src/pages/CanvasPage.tsx`**
+- Fetches all locations (respects current filters passed via URL search params or reviews all)
+- Maintains a `currentIndex` state to track position in the list
+- Displays an editable card with fields: name, address, location_type, status
+- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
+- "Save & Next" button updates the location in the database, then advances
+- "Skip" button advances without action
+- Progress bar using the existing Progress component
+- Summary card at the end with stats
 
-1. **Parses addresses**: Uses a regex like `/^(\d+)\s+(.+)$/` to extract the leading house number and the remaining street name. Addresses without a leading number go into a fallback group at the end.
-2. **Groups by street name**: Normalizes street names (trim, lowercase) to group correctly.
-3. **Sorts streets alphabetically**, then within each street:
-  - Sorts all addresses by house number ascending
-  - Splits into chunks of 10
-  - Within each chunk: odd numbers first (ascending), then even numbers (ascending)
-4. **Flattens** the grouped/chunked result back into a single ordered array.
+**Modified: `src/pages/Locations.tsx`**
+- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
+- Links to `/canvas` via `useNavigate`
 
-Apply this sort after fetching locations (line 94), replacing:
-
-```ts
-setLocations((data || []) as Location[]);
-```
-
-with:
-
-```ts
-setLocations(sortLocationsByStreetGroups((data || []) as Location[]));
-```
-
-Also display the current street group name and chunk indicator in the card header area so the user knows which group they're reviewing (e.g., "Main Street — Group 1 of 3").
+**Modified: `src/App.tsx`**
+- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
 
 ### Technical Details
 
-- Pure client-side sort, no database changes needed
-- The sorting function handles edge cases: addresses without numbers, duplicate numbers, non-numeric prefixes
-- The existing filter params and query logic remain unchanged; sorting is applied after fetch
+- No database changes needed -- canvas mode reads/updates existing `locations` table
+- Uses existing RLS policies (surveyors and admins can update)
+- Editable fields use existing Input, Select, and Badge components
+- Navigation via keyboard shortcuts (left/right arrows) for power users
+- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
+- Mobile-friendly single-card layout
+

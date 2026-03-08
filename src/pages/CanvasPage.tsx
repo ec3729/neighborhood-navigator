@@ -10,6 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft } from "lucide-react";
+import {
+  SortMode,
+  SORT_MODE_LABELS,
+  StreetGroupInfo,
+  sortLocationsByStreetGroups,
+} from "@/lib/canvasSorting";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type LocationTypeNullable = LocationType | null;
@@ -51,10 +57,12 @@ export default function CanvasPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [locations, setLocations] = useState<Location[]>([]);
+  const [groupInfoList, setGroupInfoList] = useState<StreetGroupInfo[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("street_groups");
 
   // Editable fields for the current card
   const [editName, setEditName] = useState("");
@@ -67,13 +75,25 @@ export default function CanvasPage() {
   const [reviews, setReviews] = useState<Map<string, ReviewAction>>(new Map());
   const [finished, setFinished] = useState(false);
 
+  // Raw data for re-sorting
+  const [rawLocations, setRawLocations] = useState<Location[]>([]);
+
+  const applySort = useCallback((data: Location[], mode: SortMode) => {
+    if (mode === "street_groups") {
+      const { sorted, groupInfo } = sortLocationsByStreetGroups(data);
+      setLocations(sorted);
+      setGroupInfoList(groupInfo);
+    } else {
+      setLocations(data);
+      setGroupInfoList([]);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch zones
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      // Fetch locations
       let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id");
 
       const typeParam = searchParams.get("type");
@@ -91,11 +111,23 @@ export default function CanvasPage() {
 
       const { data, error } = await query;
       if (error) { toast.error("Failed to load locations"); setLoading(false); return; }
-      setLocations((data || []) as Location[]);
+      const raw = (data || []) as Location[];
+      setRawLocations(raw);
+      applySort(raw, sortMode);
       setLoading(false);
     };
     fetchData();
   }, [searchParams]);
+
+  // Re-sort when mode changes
+  useEffect(() => {
+    if (rawLocations.length > 0) {
+      applySort(rawLocations, sortMode);
+      setCurrentIndex(0);
+      setReviews(new Map());
+      setFinished(false);
+    }
+  }, [sortMode, applySort, rawLocations]);
 
   // Sync editable fields when index changes
   useEffect(() => {
@@ -109,6 +141,7 @@ export default function CanvasPage() {
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
+  const currentGroupInfo = groupInfoList[currentIndex] as StreetGroupInfo | undefined;
 
   const isDirty = current
     ? editName !== (current.name || "") ||
@@ -158,14 +191,9 @@ export default function CanvasPage() {
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    // Update local data
-    setLocations((prev) =>
-      prev.map((l) =>
-        l.id === current.id
-          ? { ...l, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId }
-          : l
-      )
-    );
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId };
+    setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+    setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
     toast.success("Saved");
     advance();
@@ -188,8 +216,6 @@ export default function CanvasPage() {
   const updatedCount = [...reviews.values()].filter((v) => v === "updated").length;
   const skippedCount = [...reviews.values()].filter((v) => v === "skipped").length;
 
-  const zoneMap = new Map(zones.map((z) => [z.id, z.name]));
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -210,7 +236,6 @@ export default function CanvasPage() {
     );
   }
 
-  // Summary screen
   if (finished) {
     return (
       <div className="p-6 max-w-lg mx-auto space-y-6">
@@ -254,10 +279,36 @@ export default function CanvasPage() {
         <Button variant="ghost" size="sm" onClick={() => navigate("/locations")}>
           <ChevronLeft className="h-4 w-4 mr-1" /> Locations
         </Button>
-        <span className="text-sm text-muted-foreground">
-          {currentIndex + 1} of {locations.length}
-        </span>
+        <div className="flex items-center gap-3">
+          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+            <SelectTrigger className="w-[200px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SORT_MODE_LABELS).map(([k, v]) => (
+                <SelectItem key={k} value={k}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">
+            {currentIndex + 1} of {locations.length}
+          </span>
+        </div>
       </div>
+
+      {/* Street group indicator */}
+      {currentGroupInfo && sortMode === "street_groups" && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-xs">
+            {currentGroupInfo.streetName}
+          </Badge>
+          {currentGroupInfo.totalChunks > 1 && (
+            <span className="text-xs text-muted-foreground">
+              Group {currentGroupInfo.chunkIndex} of {currentGroupInfo.totalChunks}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Progress */}
       <div className="space-y-1">
