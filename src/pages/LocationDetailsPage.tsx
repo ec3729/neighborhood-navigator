@@ -213,13 +213,7 @@ export default function LocationDetailsPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Address</dt>
-              <dd className="mt-0.5">
-                {editing ? (
-                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Address" required className="h-8" />
-                ) : (
-                  <span className="font-medium">{location.address}</span>
-                )}
-              </dd>
+              <dd className="font-medium mt-0.5">{location.address}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Type</dt>
