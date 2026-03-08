@@ -155,11 +155,12 @@ export default function LocationDetailsPage() {
         name: editName.trim() || null,
         address: editAddress.trim(),
         location_type: editType as any,
+        status: editStatus as any,
       })
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus });
     setEditing(false);
     toast.success("Location updated");
   };
