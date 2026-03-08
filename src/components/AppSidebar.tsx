@@ -12,6 +12,7 @@ const navItems = [
 
 const adminItems = [
   { to: "/team", label: "Team", icon: Users },
+  { to: "/zones", label: "Zones", icon: Layers },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
