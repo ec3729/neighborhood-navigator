@@ -1,46 +1,50 @@
 
 
-## Add "Canvas" Mode for Location Review
+## Add Business Category Field to Locations
 
-Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
+### Overview
+Add a `category` text column to the `locations` table and expose it in the Location Details page (view + inline edit) and the Locations list page. Use a searchable combobox for selection given the extensive list of categories.
 
-### How It Works
+### Database Migration
+Add a nullable `category` text column to the `locations` table:
+```sql
+ALTER TABLE public.locations ADD COLUMN category text NULL;
+```
+Using a plain text column (not an enum) so categories can be extended without migrations.
 
-1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
-2. Opens a new page (`/canvas`) showing one location at a time as a large card
-3. The card displays: name, address, type, status, assigned surveyor, and coordinates
-4. User can either:
-   - Click **"Looks Good"** to confirm and move to the next location
-   - Edit any field inline and click **"Save & Next"** to update and advance
-   - Click **"Skip"** to move on without changes
-5. A progress bar at the top shows how many locations have been reviewed
-6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
+### Category List
+Define a comprehensive set of business categories as a constant array, grouped logically. Examples:
+- **Food & Dining**: Restaurant, Café, Bakery, Bar, Fast Food, Grocery Store, Food Truck, Catering
+- **Retail**: Clothing, Electronics, Furniture, Hardware, Jewelry, Pet Store, Bookstore, Pharmacy, Convenience Store
+- **Services**: Salon/Barbershop, Laundry, Auto Repair, Bank, Insurance, Legal, Accounting, Real Estate
+- **Health & Wellness**: Doctor, Dentist, Hospital, Clinic, Gym/Fitness, Spa, Veterinary
+- **Education**: School, Daycare, Tutoring, Library, College/University
+- **Entertainment**: Cinema, Theater, Arcade, Museum, Gallery, Night Club, Sports Venue
+- **Hospitality**: Hotel, Motel, B&B, Event Venue, Travel Agency
+- **Religious**: Church, Mosque, Temple, Synagogue
+- **Government**: Post Office, Fire Station, Police Station, Government Office, Community Center
+- **Industrial**: Warehouse, Factory, Storage Facility, Construction
+- **Other**: Parking Lot, Gas Station, Office Building, Non-Profit, Mixed Use, Other
 
-### What Gets Built
+This list (~60-70 items) will be stored as a shared constant in a new file `src/lib/categories.ts`.
 
-**New file: `src/pages/CanvasPage.tsx`**
-- Fetches all locations (respects current filters passed via URL search params or reviews all)
-- Maintains a `currentIndex` state to track position in the list
-- Displays an editable card with fields: name, address, location_type, status
-- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
-- "Save & Next" button updates the location in the database, then advances
-- "Skip" button advances without action
-- Progress bar using the existing Progress component
-- Summary card at the end with stats
+### UI Changes
 
-**Modified: `src/pages/Locations.tsx`**
-- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
-- Links to `/canvas` via `useNavigate`
+**1. `src/lib/categories.ts` (new)**
+- Export the categories array with groupings
 
-**Modified: `src/App.tsx`**
-- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
+**2. `src/pages/LocationDetailsPage.tsx`**
+- Add `category` to the Location interface and edit state
+- Display category in the Details card (read-only shows text or "—")
+- In edit mode, show a searchable combobox (Popover + Command) to filter and select from the category list
+- Include `category` in the save/update call
+
+**3. `src/pages/Locations.tsx`**
+- Add `category` to the Location interface
+- Optionally show category in the table or in a filter dropdown
+- Include `category` in the Add Location dialog if desired
 
 ### Technical Details
-
-- No database changes needed -- canvas mode reads/updates existing `locations` table
-- Uses existing RLS policies (surveyors and admins can update)
-- Editable fields use existing Input, Select, and Badge components
-- Navigation via keyboard shortcuts (left/right arrows) for power users
-- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
-- Mobile-friendly single-card layout
+- Use the existing `Command` (cmdk) component inside a `Popover` for the searchable dropdown — this handles the extensive list well with type-to-filter
+- The `category` field is nullable and optional, so it won't break existing data
 
