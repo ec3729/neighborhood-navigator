@@ -1,46 +1,30 @@
 
 
-## Add "Canvas" Mode for Location Review
+## Make Location Rows Clickable + Create Location Details Page
 
-Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
+### Overview
+Make each row in the Locations table clickable to navigate to a new Location Details page at `/locations/:id`. The details page will show all location info, its zone, assigned surveyor, survey status, and any associated surveys.
 
-### How It Works
+### Changes
 
-1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
-2. Opens a new page (`/canvas`) showing one location at a time as a large card
-3. The card displays: name, address, type, status, assigned surveyor, and coordinates
-4. User can either:
-   - Click **"Looks Good"** to confirm and move to the next location
-   - Edit any field inline and click **"Save & Next"** to update and advance
-   - Click **"Skip"** to move on without changes
-5. A progress bar at the top shows how many locations have been reviewed
-6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
+**1. `src/pages/Locations.tsx`**
+- Add `onClick={() => navigate(`/locations/${loc.id}`)}` and `className="cursor-pointer"` to each `TableRow`
+- Ensure clicking the checkbox column doesn't trigger navigation (stop propagation on checkbox click)
 
-### What Gets Built
+**2. `src/pages/LocationDetailsPage.tsx` (new file)**
+- Fetch location by ID from the `locations` table
+- Display all fields: name, address, type, status, zone (with link to zone details), assigned surveyor, coordinates, created date
+- Fetch associated surveys from the `surveys` table where `location_id` matches
+- Show surveys in a simple list/table (surveyor, date, property condition, etc.)
+- Back button to `/locations`
+- Follow the same layout pattern as `ZoneDetailsPage` (Card-based, consistent header style)
 
-**New file: `src/pages/CanvasPage.tsx`**
-- Fetches all locations (respects current filters passed via URL search params or reviews all)
-- Maintains a `currentIndex` state to track position in the list
-- Displays an editable card with fields: name, address, location_type, status
-- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
-- "Save & Next" button updates the location in the database, then advances
-- "Skip" button advances without action
-- Progress bar using the existing Progress component
-- Summary card at the end with stats
-
-**Modified: `src/pages/Locations.tsx`**
-- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
-- Links to `/canvas` via `useNavigate`
-
-**Modified: `src/App.tsx`**
-- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
+**3. `src/App.tsx`**
+- Import `LocationDetailsPage` and add route: `<Route path="/locations/:id" element={<LocationDetailsPage />} />`
 
 ### Technical Details
-
-- No database changes needed -- canvas mode reads/updates existing `locations` table
-- Uses existing RLS policies (surveyors and admins can update)
-- Editable fields use existing Input, Select, and Badge components
-- Navigation via keyboard shortcuts (left/right arrows) for power users
-- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
-- Mobile-friendly single-card layout
+- The `surveys` table has `location_id` foreign key, so we can query related surveys
+- Zone name resolved via a separate query or join
+- Surveyor name resolved via profiles table lookup
+- Reuse existing UI components (Card, Badge, Table, Button)
 
