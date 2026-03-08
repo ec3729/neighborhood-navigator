@@ -670,6 +670,7 @@ export default function Locations() {
                         <Checkbox
                           checked={selectedIds.has(loc.id)}
                           onCheckedChange={() => toggleSelect(loc.id)}
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </TableCell>
                     )}
