@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronLeft, Pencil, X, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronLeft, Pencil, X, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 
 const typeLabels: Record<string, string> = {
   residential: "Residential",
