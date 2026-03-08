@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronLeft, Pencil, X, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronLeft, Pencil, X, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 
 const typeLabels: Record<string, string> = {
   residential: "Residential",
@@ -42,6 +45,7 @@ interface Location {
   longitude: number | null;
   assigned_to: string | null;
   zone_id: string | null;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +78,8 @@ export default function LocationDetailsPage() {
   const [editAddress, setEditAddress] = useState("");
   const [editType, setEditType] = useState("residential");
   const [editStatus, setEditStatus] = useState("not_surveyed");
+  const [editCategory, setEditCategory] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -137,6 +143,7 @@ export default function LocationDetailsPage() {
     setEditName(location.name || "");
     setEditAddress(location.address);
     setEditType(location.location_type || "residential");
+    setEditCategory(location.category || "");
     setEditStatus(location.status);
     setEditing(true);
   };
@@ -156,11 +163,12 @@ export default function LocationDetailsPage() {
         address: editAddress.trim(),
         location_type: editType as any,
         status: editStatus as any,
+        category: editCategory || null,
       })
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null });
     setEditing(false);
     toast.success("Location updated");
   };
@@ -255,6 +263,42 @@ export default function LocationDetailsPage() {
               </dd>
             </div>
             <div>
+              <dt className="text-muted-foreground">Category</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" aria-expanded={categoryOpen} className="h-8 w-full justify-between text-sm font-normal">
+                        {editCategory || "Select category…"}
+                        <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[280px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search categories…" />
+                        <CommandList>
+                          <CommandEmpty>No category found.</CommandEmpty>
+                          <CommandItem value="__clear__" onSelect={() => { setEditCategory(""); setCategoryOpen(false); }}>
+                            <span className="text-muted-foreground">None</span>
+                          </CommandItem>
+                          {CATEGORY_GROUPS.map((group) => (
+                            <CommandGroup key={group.label} heading={group.label}>
+                              {group.items.map((item) => (
+                                <CommandItem key={item} value={item} onSelect={() => { setEditCategory(item); setCategoryOpen(false); }}>
+                                  {item}
+                                  {editCategory === item && <Check className="ml-auto h-3 w-3" />}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          ))}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <span className="font-medium">{location.category || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
               <dt className="text-muted-foreground">Zone</dt>
               <dd className="mt-0.5">
                 {zoneName ? (
