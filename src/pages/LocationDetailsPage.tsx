@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Pencil, X, Check } from "lucide-react";
 import { toast } from "sonner";
 
 const typeLabels: Record<string, string> = {
@@ -56,12 +59,21 @@ interface Survey {
 export default function LocationDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
+  const canEdit = hasRole("admin") || hasRole("surveyor");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
   const [surveyorName, setSurveyorName] = useState<string | null>(null);
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [surveyorMap, setSurveyorMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editType, setEditType] = useState("residential");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -119,6 +131,37 @@ export default function LocationDetailsPage() {
     );
   }
 
+  const startEditing = () => {
+    if (!location) return;
+    setEditName(location.name || "");
+    setEditAddress(location.address);
+    setEditType(location.location_type || "residential");
+    setEditing(true);
+  };
+
+  const cancelEditing = () => setEditing(false);
+
+  const handleSave = async () => {
+    if (!location || !editAddress.trim()) {
+      toast.error("Address is required");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("locations")
+      .update({
+        name: editName.trim() || null,
+        address: editAddress.trim(),
+        location_type: editType as any,
+      })
+      .eq("id", location.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType });
+    setEditing(false);
+    toast.success("Location updated");
+  };
+
   if (!location) return null;
 
   return (
@@ -137,13 +180,63 @@ export default function LocationDetailsPage() {
       {/* Details Card */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-display">Details</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-display">Details</CardTitle>
+            {canEdit && !editing && (
+              <Button variant="ghost" size="sm" onClick={startEditing}>
+                <Pencil className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            )}
+            {editing && (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={saving}>
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  <Check className="h-4 w-4 mr-1" /> {saving ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
             <div>
+              <dt className="text-muted-foreground">Name</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Location name (optional)" className="h-8" />
+                ) : (
+                  <span className="font-medium">{location.name || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Address</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Address" required className="h-8" />
+                ) : (
+                  <span className="font-medium">{location.address}</span>
+                )}
+              </dd>
+            </div>
+            <div>
               <dt className="text-muted-foreground">Type</dt>
-              <dd className="font-medium mt-0.5">{location.location_type ? typeLabels[location.location_type] || location.location_type : "—"}</dd>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Select value={editType} onValueChange={setEditType}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(typeLabels).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className="font-medium">{location.location_type ? typeLabels[location.location_type] || location.location_type : "—"}</span>
+                )}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Status</dt>
