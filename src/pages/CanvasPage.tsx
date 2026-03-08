@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft } from "lucide-react";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
+type LocationTypeNullable = LocationType | null;
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
 
 interface Location {
