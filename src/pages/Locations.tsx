@@ -8,19 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck, ArrowUpDown, ArrowUp, ArrowDown, ClipboardList } from "lucide-react";
+import { Plus, Search, Upload, AlertCircle, Trash2, UserCheck, ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, MapPin, Pencil } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type LocationTypeNullable = LocationType | null;
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
-type SortField = "name" | "address" | "location_type" | "status" | "assigned_to" | "created_at";
+type SortField = "name" | "address" | "location_type" | "status" | "assigned_to" | "zone" | "created_at";
 type SortDir = "asc" | "desc";
 
 interface Location {
@@ -32,7 +32,14 @@ interface Location {
   latitude: number | null;
   longitude: number | null;
   assigned_to: string | null;
+  zone_id: string | null;
   created_at: string;
+}
+
+interface Zone {
+  id: string;
+  name: string;
+  description: string | null;
 }
 
 interface Surveyor {
@@ -65,13 +72,16 @@ export default function Locations() {
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const [locations, setLocations] = useState<Location[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
+  const [zoneFilter, setZoneFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newAddress, setNewAddress] = useState("");
   const [newType, setNewType] = useState<LocationType>("residential");
   const [newName, setNewName] = useState("");
+  const [newZoneId, setNewZoneId] = useState<string>("none");
 
   // CSV upload state
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
@@ -85,14 +95,27 @@ export default function Locations() {
   // Surveyors for assignment
   const [surveyors, setSurveyors] = useState<Surveyor[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [zoneAssignOpen, setZoneAssignOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const pageSize = 25;
 
+  // Zone management dialog
+  const [zoneDialogOpen, setZoneDialogOpen] = useState(false);
+  const [editingZone, setEditingZone] = useState<Zone | null>(null);
+  const [zoneName, setZoneName] = useState("");
+  const [zoneDescription, setZoneDescription] = useState("");
+  const [savingZone, setSavingZone] = useState(false);
+
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
     if (data) setLocations(data as Location[]);
+  };
+
+  const fetchZones = async () => {
+    const { data } = await supabase.from("zones").select("id, name, description").order("name");
+    if (data) setZones(data as Zone[]);
   };
 
   const fetchSurveyors = async () => {
@@ -109,7 +132,7 @@ export default function Locations() {
     if (profiles) setSurveyors(profiles);
   };
 
-  useEffect(() => { fetchLocations(); fetchSurveyors(); }, []);
+  useEffect(() => { fetchLocations(); fetchZones(); fetchSurveyors(); }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,11 +142,13 @@ export default function Locations() {
       location_type: newType,
       created_by: user.id,
       ...(newName.trim() ? { name: newName.trim() } : {}),
+      ...(newZoneId !== "none" ? { zone_id: newZoneId } : {}),
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Location added");
     setNewAddress("");
     setNewName("");
+    setNewZoneId("none");
     setDialogOpen(false);
     fetchLocations();
   };
@@ -197,6 +222,8 @@ export default function Locations() {
     fetchLocations();
   };
 
+  const zoneMap = new Map(zones.map((z) => [z.id, z.name]));
+
   const filtered = locations.filter((l) => {
     const q = search.toLowerCase();
     const matchesSearch = l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false);
@@ -204,14 +231,17 @@ export default function Locations() {
     const matchesAssign =
       assignFilter === "all" ||
       (assignFilter === "unassigned" ? !l.assigned_to : l.assigned_to === assignFilter);
-    return matchesSearch && matchesType && matchesAssign;
+    const matchesZone =
+      zoneFilter === "all" ||
+      (zoneFilter === "unzoned" ? !l.zone_id : l.zone_id === zoneFilter);
+    return matchesSearch && matchesType && matchesAssign && matchesZone;
   });
 
   const canCreate = hasRole("surveyor") || hasRole("admin");
   const isAdmin = hasRole("admin");
 
   const surveyorMap = new Map(surveyors.map((s) => [s.user_id, s.full_name || "Unnamed User"]));
-  const colCount = isAdmin ? 8 : 7;
+  const colCount = isAdmin ? 9 : 8;
 
   // Sorting
   const sorted = [...filtered].sort((a, b) => {
@@ -235,6 +265,12 @@ export default function Locations() {
         cmp = nameA.localeCompare(nameB);
         break;
       }
+      case "zone": {
+        const zoneA = a.zone_id ? zoneMap.get(a.zone_id) || "" : "";
+        const zoneB = b.zone_id ? zoneMap.get(b.zone_id) || "" : "";
+        cmp = zoneA.localeCompare(zoneB);
+        break;
+      }
       case "created_at":
         cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         break;
@@ -248,7 +284,7 @@ export default function Locations() {
   const paginatedRows = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   // Reset page when filters change
-  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter]);
+  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter, zoneFilter]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -264,9 +300,6 @@ export default function Locations() {
     if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
-
-  // Reset page when filters change
-  useEffect(() => { setCurrentPage(1); }, [search, typeFilter, assignFilter]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -307,6 +340,59 @@ export default function Locations() {
     setSelectedIds(new Set());
     setAssignOpen(false);
     fetchLocations();
+  };
+
+  const handleBulkAssignZone = async (zoneId: string) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from("locations")
+      .update({ zone_id: zoneId === "none" ? null : zoneId })
+      .in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    const zone = zones.find((z) => z.id === zoneId);
+    toast.success(`Assigned ${ids.length} location(s) to ${zone?.name || "no zone"}.`);
+    setSelectedIds(new Set());
+    setZoneAssignOpen(false);
+    fetchLocations();
+  };
+
+  // Zone CRUD
+  const openZoneDialog = (zone?: Zone) => {
+    if (zone) {
+      setEditingZone(zone);
+      setZoneName(zone.name);
+      setZoneDescription(zone.description || "");
+    } else {
+      setEditingZone(null);
+      setZoneName("");
+      setZoneDescription("");
+    }
+    setZoneDialogOpen(true);
+  };
+
+  const handleSaveZone = async () => {
+    if (!user || !zoneName.trim()) return;
+    setSavingZone(true);
+    if (editingZone) {
+      const { error } = await supabase.from("zones").update({ name: zoneName.trim(), description: zoneDescription.trim() || null }).eq("id", editingZone.id);
+      if (error) { toast.error(error.message); setSavingZone(false); return; }
+      toast.success("Zone updated");
+    } else {
+      const { error } = await supabase.from("zones").insert({ name: zoneName.trim(), description: zoneDescription.trim() || null, created_by: user.id });
+      if (error) { toast.error(error.message); setSavingZone(false); return; }
+      toast.success("Zone created");
+    }
+    setSavingZone(false);
+    setZoneDialogOpen(false);
+    fetchZones();
+  };
+
+  const handleDeleteZone = async (zoneId: string) => {
+    const { error } = await supabase.from("zones").delete().eq("id", zoneId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Zone deleted");
+    fetchZones();
   };
 
   return (
@@ -396,6 +482,18 @@ export default function Locations() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Zone (optional)</Label>
+                    <Select value={newZoneId} onValueChange={setNewZoneId}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">— No Zone</SelectItem>
+                        {zones.map((z) => (
+                          <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit" className="w-full">Add Location</Button>
                 </form>
               </DialogContent>
@@ -404,13 +502,13 @@ export default function Locations() {
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Search names or addresses..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="All types" /></SelectTrigger>
+          <SelectTrigger className="w-40"><SelectValue placeholder="All types" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             {Object.entries(typeLabels).map(([k, v]) => (
@@ -418,8 +516,18 @@ export default function Locations() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={zoneFilter} onValueChange={setZoneFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="All zones" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Zones</SelectItem>
+            <SelectItem value="unzoned">Unzoned</SelectItem>
+            {zones.map((z) => (
+              <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={assignFilter} onValueChange={setAssignFilter}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="All assignments" /></SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="All assignments" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Assignments</SelectItem>
             <SelectItem value="unassigned">Unassigned</SelectItem>
@@ -428,6 +536,11 @@ export default function Locations() {
             ))}
           </SelectContent>
         </Select>
+        {isAdmin && (
+          <Button variant="outline" size="sm" onClick={() => openZoneDialog()}>
+            <MapPin className="h-4 w-4 mr-2" /> Manage Zones
+          </Button>
+        )}
       </div>
 
       {isAdmin && selectedIds.size > 0 && (
@@ -453,6 +566,31 @@ export default function Locations() {
                     </button>
                   ))
                 )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Popover open={zoneAssignOpen} onOpenChange={setZoneAssignOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm"><MapPin className="h-4 w-4 mr-2" /> Assign Zone</Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1">Select a zone</p>
+                <button
+                  onClick={() => handleBulkAssignZone("none")}
+                  className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
+                >
+                  — Remove Zone
+                </button>
+                {zones.map((z) => (
+                  <button
+                    key={z.id}
+                    onClick={() => handleBulkAssignZone(z.id)}
+                    className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                  >
+                    {z.name}
+                  </button>
+                ))}
               </div>
             </PopoverContent>
           </Popover>
@@ -496,6 +634,9 @@ export default function Locations() {
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("location_type")}>
                   <span className="inline-flex items-center">Type<SortIcon field="location_type" /></span>
                 </TableHead>
+                <TableHead className="cursor-pointer select-none" onClick={() => handleSort("zone")}>
+                  <span className="inline-flex items-center">Zone<SortIcon field="zone" /></span>
+                </TableHead>
                 <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
                   <span className="inline-flex items-center">Status<SortIcon field="status" /></span>
                 </TableHead>
@@ -528,6 +669,13 @@ export default function Locations() {
                     <TableCell className="text-muted-foreground">{loc.name || "—"}</TableCell>
                     <TableCell className="font-medium">{loc.address}</TableCell>
                     <TableCell>{loc.location_type ? typeLabels[loc.location_type] : <span className="text-muted-foreground/50">—</span>}</TableCell>
+                    <TableCell>
+                      {loc.zone_id ? (
+                        <Badge variant="outline">{zoneMap.get(loc.zone_id) || "Unknown"}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground/50">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={statusColors[loc.status]}>
                         {loc.status.replace(/_/g, " ")}
@@ -584,6 +732,80 @@ export default function Locations() {
           </div>
         </div>
       )}
+
+      {/* Zone Management Dialog */}
+      <Dialog open={zoneDialogOpen} onOpenChange={setZoneDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">{editingZone ? "Edit Zone" : "Manage Zones"}</DialogTitle>
+          </DialogHeader>
+          {editingZone ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Zone Name</Label>
+                <Input value={zoneName} onChange={(e) => setZoneName(e.target.value)} placeholder="e.g. Downtown" />
+              </div>
+              <div className="space-y-2">
+                <Label>Description (optional)</Label>
+                <Input value={zoneDescription} onChange={(e) => setZoneDescription(e.target.value)} placeholder="e.g. Central business district" />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditingZone(null)}>Cancel</Button>
+                <Button onClick={handleSaveZone} disabled={savingZone || !zoneName.trim()}>
+                  {savingZone ? "Saving..." : "Save"}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>New Zone Name</Label>
+                <div className="flex gap-2">
+                  <Input value={zoneName} onChange={(e) => setZoneName(e.target.value)} placeholder="e.g. Downtown" />
+                  <Button onClick={handleSaveZone} disabled={savingZone || !zoneName.trim()}>
+                    {savingZone ? "..." : "Add"}
+                  </Button>
+                </div>
+              </div>
+              {zones.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Existing Zones</Label>
+                  <div className="border rounded-md divide-y max-h-60 overflow-y-auto">
+                    {zones.map((z) => (
+                      <div key={z.id} className="flex items-center justify-between p-2">
+                        <div>
+                          <p className="font-medium text-sm">{z.name}</p>
+                          {z.description && <p className="text-xs text-muted-foreground">{z.description}</p>}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => openZoneDialog(z)}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm"><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete zone "{z.name}"?</AlertDialogTitle>
+                                <AlertDialogDescription>Locations in this zone will become unzoned.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteZone(z.id)}>Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,52 +1,46 @@
 
 
-## Add Zones to Group Locations
+## Add "Canvas" Mode for Location Review
 
-### Overview
-Add a `zones` table and a `zone_id` foreign key on `locations` so locations can be grouped into zones. Update the Locations page and Canvas page to display and manage zone assignments.
+Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
 
-### 1. Database Migration
+### How It Works
 
-Create a `zones` table and add `zone_id` to `locations`:
+1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
+2. Opens a new page (`/canvas`) showing one location at a time as a large card
+3. The card displays: name, address, type, status, assigned surveyor, and coordinates
+4. User can either:
+   - Click **"Looks Good"** to confirm and move to the next location
+   - Edit any field inline and click **"Save & Next"** to update and advance
+   - Click **"Skip"** to move on without changes
+5. A progress bar at the top shows how many locations have been reviewed
+6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
 
-```sql
-CREATE TABLE zones (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  description text,
-  created_by uuid NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+### What Gets Built
 
-ALTER TABLE zones ENABLE ROW LEVEL SECURITY;
+**New file: `src/pages/CanvasPage.tsx`**
+- Fetches all locations (respects current filters passed via URL search params or reviews all)
+- Maintains a `currentIndex` state to track position in the list
+- Displays an editable card with fields: name, address, location_type, status
+- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
+- "Save & Next" button updates the location in the database, then advances
+- "Skip" button advances without action
+- Progress bar using the existing Progress component
+- Summary card at the end with stats
 
--- RLS: same pattern as locations
-CREATE POLICY "Authenticated can view zones" ON zones FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Admins can manage zones" ON zones FOR INSERT TO authenticated WITH CHECK (has_role(auth.uid(), 'admin'));
-CREATE POLICY "Admins can update zones" ON zones FOR UPDATE TO authenticated USING (has_role(auth.uid(), 'admin'));
-CREATE POLICY "Admins can delete zones" ON zones FOR DELETE TO authenticated USING (has_role(auth.uid(), 'admin'));
+**Modified: `src/pages/Locations.tsx`**
+- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
+- Links to `/canvas` via `useNavigate`
 
--- Add zone_id to locations
-ALTER TABLE locations ADD COLUMN zone_id uuid REFERENCES zones(id) ON DELETE SET NULL;
-```
+**Modified: `src/App.tsx`**
+- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
 
-### 2. Locations Page Updates (`src/pages/Locations.tsx`)
+### Technical Details
 
-- Fetch zones and build a lookup map
-- Add a **Zone filter** dropdown alongside existing type/assignment filters
-- Display a **Zone** column in the table
-- Add a **zone selector** in the Add Location dialog
-- Add **bulk assign to zone** in the bulk actions bar (similar to bulk assign surveyor)
-- Show zone name as a badge or text in each row
-
-### 3. Canvas Page Updates (`src/pages/CanvasPage.tsx`)
-
-- Fetch zones for the dropdown
-- Add a **Zone** select field on the review card (editable)
-- Include zone in the save/update logic
-- Support `zone` URL param for filtering canvas to a specific zone
-
-### 4. Zone Management
-
-- Add a small zone management section: a dialog to create/edit/delete zones (admin only), accessible from the Locations page header or a dedicated area
+- No database changes needed -- canvas mode reads/updates existing `locations` table
+- Uses existing RLS policies (surveyors and admins can update)
+- Editable fields use existing Input, Select, and Badge components
+- Navigation via keyboard shortcuts (left/right arrows) for power users
+- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
+- Mobile-friendly single-card layout
 
