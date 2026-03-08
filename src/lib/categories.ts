@@ -1,0 +1,165 @@
+export interface CategoryGroup {
+  label: string;
+  items: string[];
+}
+
+export const CATEGORY_GROUPS: CategoryGroup[] = [
+  {
+    label: "Food & Dining",
+    items: [
+      "Restaurant",
+      "Café",
+      "Bakery",
+      "Bar / Pub",
+      "Fast Food",
+      "Grocery Store",
+      "Food Truck",
+      "Catering",
+      "Butcher / Deli",
+      "Ice Cream / Dessert",
+    ],
+  },
+  {
+    label: "Retail",
+    items: [
+      "Clothing / Apparel",
+      "Electronics",
+      "Furniture",
+      "Hardware",
+      "Jewelry",
+      "Pet Store",
+      "Bookstore",
+      "Pharmacy",
+      "Convenience Store",
+      "Department Store",
+      "Sporting Goods",
+      "Thrift / Consignment",
+      "Florist",
+      "Gift Shop",
+      "Liquor Store",
+    ],
+  },
+  {
+    label: "Services",
+    items: [
+      "Salon / Barbershop",
+      "Laundry / Dry Cleaning",
+      "Auto Repair / Mechanic",
+      "Car Wash",
+      "Bank / Credit Union",
+      "Insurance Agency",
+      "Legal / Law Office",
+      "Accounting / Tax",
+      "Real Estate Office",
+      "Printing / Copy",
+      "Locksmith",
+      "Pest Control",
+      "Plumbing",
+      "Electrical Services",
+      "Cleaning Service",
+    ],
+  },
+  {
+    label: "Health & Wellness",
+    items: [
+      "Doctor / Physician",
+      "Dentist",
+      "Hospital",
+      "Clinic / Urgent Care",
+      "Gym / Fitness Center",
+      "Spa / Massage",
+      "Veterinary",
+      "Optometrist",
+      "Chiropractor",
+      "Mental Health / Counseling",
+      "Physical Therapy",
+    ],
+  },
+  {
+    label: "Education",
+    items: [
+      "School (K-12)",
+      "Daycare / Preschool",
+      "Tutoring Center",
+      "Library",
+      "College / University",
+      "Trade School",
+      "Driving School",
+      "Music / Art School",
+    ],
+  },
+  {
+    label: "Entertainment",
+    items: [
+      "Cinema / Movie Theater",
+      "Theater / Performing Arts",
+      "Arcade / Gaming",
+      "Museum",
+      "Art Gallery",
+      "Night Club",
+      "Sports Venue",
+      "Bowling Alley",
+      "Amusement Park",
+      "Concert Venue",
+    ],
+  },
+  {
+    label: "Hospitality",
+    items: [
+      "Hotel",
+      "Motel",
+      "Bed & Breakfast",
+      "Event Venue / Banquet Hall",
+      "Travel Agency",
+      "Campground / RV Park",
+    ],
+  },
+  {
+    label: "Religious",
+    items: [
+      "Church",
+      "Mosque",
+      "Temple",
+      "Synagogue",
+      "Other Place of Worship",
+    ],
+  },
+  {
+    label: "Government & Civic",
+    items: [
+      "Post Office",
+      "Fire Station",
+      "Police Station",
+      "Government Office",
+      "Community Center",
+      "Courthouse",
+      "DMV",
+    ],
+  },
+  {
+    label: "Industrial",
+    items: [
+      "Warehouse",
+      "Factory / Manufacturing",
+      "Storage Facility",
+      "Construction Company",
+      "Distribution Center",
+    ],
+  },
+  {
+    label: "Other",
+    items: [
+      "Parking Lot / Garage",
+      "Gas Station",
+      "Office Building",
+      "Non-Profit / NGO",
+      "Mixed Use",
+      "Coworking Space",
+      "Data Center",
+      "Other",
+    ],
+  },
+];
+
+/** Flat list of all categories */
+export const ALL_CATEGORIES = CATEGORY_GROUPS.flatMap((g) => g.items);
