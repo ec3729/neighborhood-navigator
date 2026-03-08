@@ -263,6 +263,42 @@ export default function LocationDetailsPage() {
               </dd>
             </div>
             <div>
+              <dt className="text-muted-foreground">Category</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" aria-expanded={categoryOpen} className="h-8 w-full justify-between text-sm font-normal">
+                        {editCategory || "Select category…"}
+                        <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[280px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search categories…" />
+                        <CommandList>
+                          <CommandEmpty>No category found.</CommandEmpty>
+                          <CommandItem value="__clear__" onSelect={() => { setEditCategory(""); setCategoryOpen(false); }}>
+                            <span className="text-muted-foreground">None</span>
+                          </CommandItem>
+                          {CATEGORY_GROUPS.map((group) => (
+                            <CommandGroup key={group.label} heading={group.label}>
+                              {group.items.map((item) => (
+                                <CommandItem key={item} value={item} onSelect={() => { setEditCategory(item); setCategoryOpen(false); }}>
+                                  {item}
+                                  {editCategory === item && <Check className="ml-auto h-3 w-3" />}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          ))}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <span className="font-medium">{location.category || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
               <dt className="text-muted-foreground">Zone</dt>
               <dd className="mt-0.5">
                 {zoneName ? (
