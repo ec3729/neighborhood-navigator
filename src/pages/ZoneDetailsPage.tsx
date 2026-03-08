@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, Plus, X } from "lucide-react";
@@ -38,6 +40,7 @@ export default function ZoneDetailsPage() {
   const [selectedToAdd, setSelectedToAdd] = useState<Set<string>>(new Set());
   const [selectedToRemove, setSelectedToRemove] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [showUnzonedOnly, setShowUnzonedOnly] = useState(true);
 
   const fetchData = async () => {
     if (!id) return;
@@ -96,9 +99,9 @@ export default function ZoneDetailsPage() {
   };
 
   const q = search.toLowerCase();
-  const filteredUnassigned = unassignedLocations.filter(
-    (l) => l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false)
-  );
+  const filteredUnassigned = unassignedLocations
+    .filter((l) => !showUnzonedOnly || !l.zone_id)
+    .filter((l) => l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false));
 
   if (loading) {
     return (
@@ -185,12 +188,18 @@ export default function ZoneDetailsPage() {
                 </Button>
               )}
             </div>
-            <Input
-              placeholder="Search by name or address..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="mt-2"
-            />
+            <div className="flex items-center gap-4 mt-2">
+              <Input
+                placeholder="Search by name or address..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1"
+              />
+              <div className="flex items-center gap-2 shrink-0">
+                <Switch id="unzoned-only" checked={showUnzonedOnly} onCheckedChange={setShowUnzonedOnly} />
+                <Label htmlFor="unzoned-only" className="text-sm whitespace-nowrap">Unzoned only</Label>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-80 overflow-y-auto">
