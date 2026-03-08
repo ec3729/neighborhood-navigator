@@ -228,7 +228,33 @@ export default function ZoneDetailsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10" />
+                    <TableHead className="w-10">
+                      {filteredUnassigned.length > 0 && (() => {
+                        const visibleIds = filteredUnassigned.slice(0, 100).map((l) => l.id);
+                        const allSelected = visibleIds.every((id) => selectedToAdd.has(id));
+                        const someSelected = visibleIds.some((id) => selectedToAdd.has(id));
+                        return (
+                          <Checkbox
+                            checked={allSelected}
+                            ref={(el) => {
+                              if (el) {
+                                (el as unknown as HTMLButtonElement).dataset.state =
+                                  someSelected && !allSelected ? "indeterminate" : allSelected ? "checked" : "unchecked";
+                              }
+                            }}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedToAdd(new Set([...selectedToAdd, ...visibleIds]));
+                              } else {
+                                const next = new Set(selectedToAdd);
+                                visibleIds.forEach((id) => next.delete(id));
+                                setSelectedToAdd(next);
+                              }
+                            }}
+                          />
+                        );
+                      })()}
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Current Zone</TableHead>
