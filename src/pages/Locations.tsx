@@ -224,7 +224,7 @@ export default function Locations() {
         cmp = a.address.localeCompare(b.address);
         break;
       case "location_type":
-        cmp = a.location_type.localeCompare(b.location_type);
+        cmp = (a.location_type || "").localeCompare(b.location_type || "");
         break;
       case "status":
         cmp = a.status.localeCompare(b.status);
