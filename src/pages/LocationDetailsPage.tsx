@@ -131,6 +131,37 @@ export default function LocationDetailsPage() {
     );
   }
 
+  const startEditing = () => {
+    if (!location) return;
+    setEditName(location.name || "");
+    setEditAddress(location.address);
+    setEditType(location.location_type || "residential");
+    setEditing(true);
+  };
+
+  const cancelEditing = () => setEditing(false);
+
+  const handleSave = async () => {
+    if (!location || !editAddress.trim()) {
+      toast.error("Address is required");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("locations")
+      .update({
+        name: editName.trim() || null,
+        address: editAddress.trim(),
+        location_type: editType as any,
+      })
+      .eq("id", location.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType });
+    setEditing(false);
+    toast.success("Location updated");
+  };
+
   if (!location) return null;
 
   return (
