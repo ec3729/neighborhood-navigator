@@ -45,6 +45,7 @@ interface Location {
   longitude: number | null;
   assigned_to: string | null;
   zone_id: string | null;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
