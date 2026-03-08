@@ -52,7 +52,7 @@ export default function CanvasPage() {
   // Editable fields for the current card
   const [editName, setEditName] = useState("");
   const [editAddress, setEditAddress] = useState("");
-  const [editType, setEditType] = useState<LocationType>("residential");
+  const [editType, setEditType] = useState<LocationTypeNullable>(null);
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
   const [dirty, setDirty] = useState(false);
 
