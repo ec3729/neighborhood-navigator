@@ -99,9 +99,9 @@ export default function ZoneDetailsPage() {
   };
 
   const q = search.toLowerCase();
-  const filteredUnassigned = unassignedLocations.filter(
-    (l) => l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false)
-  );
+  const filteredUnassigned = unassignedLocations
+    .filter((l) => !showUnzonedOnly || !l.zone_id)
+    .filter((l) => l.address.toLowerCase().includes(q) || (l.name?.toLowerCase().includes(q) ?? false));
 
   if (loading) {
     return (
