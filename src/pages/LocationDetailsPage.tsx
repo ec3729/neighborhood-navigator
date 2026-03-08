@@ -59,12 +59,21 @@ interface Survey {
 export default function LocationDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
+  const canEdit = hasRole("admin") || hasRole("surveyor");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
   const [surveyorName, setSurveyorName] = useState<string | null>(null);
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [surveyorMap, setSurveyorMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editType, setEditType] = useState("residential");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
