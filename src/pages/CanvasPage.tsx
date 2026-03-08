@@ -24,6 +24,12 @@ interface Location {
   latitude: number | null;
   longitude: number | null;
   assigned_to: string | null;
+  zone_id: string | null;
+}
+
+interface Zone {
+  id: string;
+  name: string;
 }
 
 const typeLabels: Record<LocationType, string> = {
@@ -45,6 +51,7 @@ export default function CanvasPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [locations, setLocations] = useState<Location[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,15 +61,20 @@ export default function CanvasPage() {
   const [editAddress, setEditAddress] = useState("");
   const [editType, setEditType] = useState<LocationTypeNullable>(null);
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
-  const [dirty, setDirty] = useState(false);
+  const [editZoneId, setEditZoneId] = useState<string>("none");
 
   // Review tracking
   const [reviews, setReviews] = useState<Map<string, ReviewAction>>(new Map());
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to");
+    const fetchData = async () => {
+      // Fetch zones
+      const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
+      if (zonesData) setZones(zonesData as Zone[]);
+
+      // Fetch locations
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
@@ -71,6 +83,10 @@ export default function CanvasPage() {
       if (assignParam === "unassigned") query = query.is("assigned_to", null);
       else if (assignParam && assignParam !== "all") query = query.eq("assigned_to", assignParam);
 
+      const zoneParam = searchParams.get("zone");
+      if (zoneParam === "unzoned") query = query.is("zone_id", null);
+      else if (zoneParam && zoneParam !== "all") query = query.eq("zone_id", zoneParam);
+
       query = query.order("created_at", { ascending: false });
 
       const { data, error } = await query;
@@ -78,7 +94,7 @@ export default function CanvasPage() {
       setLocations((data || []) as Location[]);
       setLoading(false);
     };
-    fetchLocations();
+    fetchData();
   }, [searchParams]);
 
   // Sync editable fields when index changes
@@ -89,7 +105,7 @@ export default function CanvasPage() {
     setEditAddress(loc.address);
     setEditType(loc.location_type);
     setEditStatus(loc.status);
-    setDirty(false);
+    setEditZoneId(loc.zone_id || "none");
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
@@ -98,7 +114,8 @@ export default function CanvasPage() {
     ? editName !== (current.name || "") ||
       editAddress !== current.address ||
       editType !== current.location_type ||
-      editStatus !== current.status
+      editStatus !== current.status ||
+      (editZoneId === "none" ? null : editZoneId) !== current.zone_id
     : false;
 
   const advance = useCallback(() => {
@@ -135,6 +152,7 @@ export default function CanvasPage() {
         address: editAddress,
         location_type: editType || null,
         status: editStatus,
+        zone_id: editZoneId === "none" ? null : editZoneId,
       })
       .eq("id", current.id);
     setSaving(false);
@@ -144,7 +162,7 @@ export default function CanvasPage() {
     setLocations((prev) =>
       prev.map((l) =>
         l.id === current.id
-          ? { ...l, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus }
+          ? { ...l, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId }
           : l
       )
     );
@@ -169,6 +187,8 @@ export default function CanvasPage() {
   const confirmedCount = [...reviews.values()].filter((v) => v === "confirmed").length;
   const updatedCount = [...reviews.values()].filter((v) => v === "updated").length;
   const skippedCount = [...reviews.values()].filter((v) => v === "skipped").length;
+
+  const zoneMap = new Map(zones.map((z) => [z.id, z.name]));
 
   if (loading) {
     return (
@@ -286,6 +306,18 @@ export default function CanvasPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Zone</Label>
+              <Select value={editZoneId} onValueChange={setEditZoneId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— No Zone</SelectItem>
+                  {zones.map((z) => (
+                    <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {(current.latitude != null && current.longitude != null) && (
               <p className="text-xs text-muted-foreground">
