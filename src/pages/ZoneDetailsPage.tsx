@@ -75,6 +75,20 @@ export default function ZoneDetailsPage() {
     fetchData();
   };
 
+  const handleReassign = async (targetZoneId: string) => {
+    if (selectedToRemove.size === 0) return;
+    setSaving(true);
+    const ids = Array.from(selectedToRemove);
+    const { error } = await supabase.from("locations").update({ zone_id: targetZoneId }).in("id", ids);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    const targetZone = allZones.find((z) => z.id === targetZoneId);
+    toast.success(`Reassigned ${ids.length} location(s) to ${targetZone?.name || "another zone"}`);
+    setSelectedToRemove(new Set());
+    setReassignOpen(false);
+    fetchData();
+  };
+
   const handleRemove = async () => {
     if (selectedToRemove.size === 0) return;
     setSaving(true);
