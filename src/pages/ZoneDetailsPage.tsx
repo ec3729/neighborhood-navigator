@@ -146,7 +146,29 @@ export default function ZoneDetailsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                {isAdmin && <TableHead className="w-10" />}
+                {isAdmin && (
+                  <TableHead className="w-10">
+                    {assignedLocations.length > 0 && (
+                      <Checkbox
+                        checked={selectedToRemove.size === assignedLocations.length}
+                        ref={(el) => {
+                          if (el) {
+                            (el as unknown as HTMLButtonElement).dataset.state =
+                              selectedToRemove.size > 0 && selectedToRemove.size < assignedLocations.length
+                                ? "indeterminate" : selectedToRemove.size === assignedLocations.length ? "checked" : "unchecked";
+                          }
+                        }}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedToRemove(new Set(assignedLocations.map((l) => l.id)));
+                          } else {
+                            setSelectedToRemove(new Set());
+                          }
+                        }}
+                      />
+                    )}
+                  </TableHead>
+                )}
                 <TableHead>Name</TableHead>
                 <TableHead>Address</TableHead>
               </TableRow>
