@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users } from "lucide-react";
+import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const navItems = [
 
 const adminItems = [
   { to: "/team", label: "Team", icon: Users },
+  { to: "/zones", label: "Zones", icon: Layers },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

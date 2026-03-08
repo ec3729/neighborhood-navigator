@@ -13,6 +13,7 @@ import MapView from "./pages/MapView";
 import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
 import CanvasPage from "./pages/CanvasPage";
+import ZonesPage from "./pages/ZonesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/team" element={<TeamPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/canvas" element={<CanvasPage />} />
+              <Route path="/zones" element={<ZonesPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
