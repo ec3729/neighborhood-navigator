@@ -1,18 +1,21 @@
 
 
-## Add Sequential Address Sample Data
+## Remove Type from Sample Locations
 
-Insert 20 locations with sequential addresses (e.g., "1 Main St", "2 Main St", ..., "20 Main St") using the existing `created_by` user ID. No names, default type (residential), default status (not_surveyed).
+Two changes needed:
 
-### Data Insert
-Use the data insert tool to run:
+### 1. Schema Migration
+Alter `location_type` column to allow NULL:
 ```sql
-INSERT INTO locations (address, created_by) VALUES
-('1 Main St', 'c1287690-505e-4998-96ba-2d938d5e7c8f'),
-('2 Main St', 'c1287690-505e-4998-96ba-2d938d5e7c8f'),
-...
-('20 Main St', 'c1287690-505e-4998-96ba-2d938d5e7c8f');
+ALTER TABLE locations ALTER COLUMN location_type DROP NOT NULL;
 ```
 
-No code or schema changes needed -- just a data insert.
+### 2. Data Update
+Set `location_type` to NULL for the 20 "Main St" sample records:
+```sql
+UPDATE locations SET location_type = NULL WHERE address LIKE '% Main St';
+```
+
+### 3. Code Update
+Update `src/pages/CanvasPage.tsx` and `src/pages/Locations.tsx` to handle nullable `location_type` (guard against null in display/select components, show "—" or similar when unset).
 
