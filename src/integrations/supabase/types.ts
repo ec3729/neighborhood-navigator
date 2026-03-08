@@ -27,6 +27,7 @@ export type Database = {
           name: string | null
           status: Database["public"]["Enums"]["survey_status"]
           updated_at: string
+          zone_id: string | null
         }
         Insert: {
           address: string
@@ -40,6 +41,7 @@ export type Database = {
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           updated_at?: string
+          zone_id?: string | null
         }
         Update: {
           address?: string
@@ -53,8 +55,17 @@ export type Database = {
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           updated_at?: string
+          zone_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "locations_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -228,6 +239,30 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      zones: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
