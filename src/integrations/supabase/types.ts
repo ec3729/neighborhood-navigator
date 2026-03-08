@@ -22,7 +22,7 @@ export type Database = {
           created_by: string
           id: string
           latitude: number | null
-          location_type: Database["public"]["Enums"]["location_type"]
+          location_type: Database["public"]["Enums"]["location_type"] | null
           longitude: number | null
           name: string | null
           status: Database["public"]["Enums"]["survey_status"]
@@ -35,7 +35,7 @@ export type Database = {
           created_by: string
           id?: string
           latitude?: number | null
-          location_type?: Database["public"]["Enums"]["location_type"]
+          location_type?: Database["public"]["Enums"]["location_type"] | null
           longitude?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
@@ -48,7 +48,7 @@ export type Database = {
           created_by?: string
           id?: string
           latitude?: number | null
-          location_type?: Database["public"]["Enums"]["location_type"]
+          location_type?: Database["public"]["Enums"]["location_type"] | null
           longitude?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]

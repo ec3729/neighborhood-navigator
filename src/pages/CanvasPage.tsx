@@ -12,13 +12,14 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft } from "lucide-react";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
+type LocationTypeNullable = LocationType | null;
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
 
 interface Location {
   id: string;
   name: string | null;
   address: string;
-  location_type: LocationType;
+  location_type: LocationTypeNullable;
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
@@ -51,7 +52,7 @@ export default function CanvasPage() {
   // Editable fields for the current card
   const [editName, setEditName] = useState("");
   const [editAddress, setEditAddress] = useState("");
-  const [editType, setEditType] = useState<LocationType>("residential");
+  const [editType, setEditType] = useState<LocationTypeNullable>(null);
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
   const [dirty, setDirty] = useState(false);
 
@@ -132,7 +133,7 @@ export default function CanvasPage() {
       .update({
         name: editName.trim() || null,
         address: editAddress,
-        location_type: editType,
+        location_type: editType || null,
         status: editStatus,
       })
       .eq("id", current.id);
@@ -264,9 +265,10 @@ export default function CanvasPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select value={editType} onValueChange={(v) => setEditType(v as LocationType)}>
+                <Select value={editType || "none"} onValueChange={(v) => setEditType(v === "none" ? null : v as LocationType)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">— None</SelectItem>
                     {Object.entries(typeLabels).map(([k, v]) => (
                       <SelectItem key={k} value={k}>{v}</SelectItem>
                     ))}

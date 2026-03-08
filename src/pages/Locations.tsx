@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
+type LocationTypeNullable = LocationType | null;
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
 type SortField = "name" | "address" | "location_type" | "status" | "assigned_to" | "created_at";
 type SortDir = "asc" | "desc";
@@ -26,7 +27,7 @@ interface Location {
   id: string;
   name: string | null;
   address: string;
-  location_type: LocationType;
+  location_type: LocationTypeNullable;
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
@@ -223,7 +224,7 @@ export default function Locations() {
         cmp = a.address.localeCompare(b.address);
         break;
       case "location_type":
-        cmp = a.location_type.localeCompare(b.location_type);
+        cmp = (a.location_type || "").localeCompare(b.location_type || "");
         break;
       case "status":
         cmp = a.status.localeCompare(b.status);
@@ -526,7 +527,7 @@ export default function Locations() {
                     )}
                     <TableCell className="text-muted-foreground">{loc.name || "—"}</TableCell>
                     <TableCell className="font-medium">{loc.address}</TableCell>
-                    <TableCell>{typeLabels[loc.location_type]}</TableCell>
+                    <TableCell>{loc.location_type ? typeLabels[loc.location_type] : <span className="text-muted-foreground/50">—</span>}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={statusColors[loc.status]}>
                         {loc.status.replace(/_/g, " ")}
