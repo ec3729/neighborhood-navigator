@@ -40,6 +40,7 @@ export default function ZoneDetailsPage() {
   const [selectedToAdd, setSelectedToAdd] = useState<Set<string>>(new Set());
   const [selectedToRemove, setSelectedToRemove] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [showUnzonedOnly, setShowUnzonedOnly] = useState(true);
 
   const fetchData = async () => {
     if (!id) return;
