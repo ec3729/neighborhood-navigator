@@ -34,6 +34,7 @@ export default function ZoneDetailsPage() {
   const isAdmin = hasRole("admin");
 
   const [zone, setZone] = useState<Zone | null>(null);
+  const [allZones, setAllZones] = useState<Zone[]>([]);
   const [assignedLocations, setAssignedLocations] = useState<Location[]>([]);
   const [unassignedLocations, setUnassignedLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,7 @@ export default function ZoneDetailsPage() {
   const [selectedToRemove, setSelectedToRemove] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [showUnzonedOnly, setShowUnzonedOnly] = useState(true);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
