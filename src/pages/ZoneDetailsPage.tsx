@@ -155,9 +155,36 @@ export default function ZoneDetailsPage() {
               <Badge variant="secondary" className="ml-2">{assignedLocations.length}</Badge>
             </CardTitle>
             {isAdmin && selectedToRemove.size > 0 && (
-              <Button variant="destructive" size="sm" onClick={handleRemove} disabled={saving}>
-                <X className="h-4 w-4 mr-1" /> Remove {selectedToRemove.size} selected
-              </Button>
+              <div className="flex items-center gap-2">
+                <Popover open={reassignOpen} onOpenChange={setReassignOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={saving || allZones.length === 0}>
+                      <ArrowRightLeft className="h-4 w-4 mr-1" /> Reassign {selectedToRemove.size} to…
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">Move to zone</p>
+                      {allZones.length === 0 ? (
+                        <p className="text-xs text-muted-foreground px-2 py-2">No other zones available.</p>
+                      ) : (
+                        allZones.map((z) => (
+                          <button
+                            key={z.id}
+                            onClick={() => handleReassign(z.id)}
+                            className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-accent transition-colors"
+                          >
+                            {z.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button variant="destructive" size="sm" onClick={handleRemove} disabled={saving}>
+                  <X className="h-4 w-4 mr-1" /> Remove {selectedToRemove.size} selected
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
