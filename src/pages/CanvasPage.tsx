@@ -19,7 +19,7 @@ interface Location {
   id: string;
   name: string | null;
   address: string;
-  location_type: LocationType;
+  location_type: LocationTypeNullable;
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
