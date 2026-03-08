@@ -15,6 +15,7 @@ import SettingsPage from "./pages/SettingsPage";
 import CanvasPage from "./pages/CanvasPage";
 import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailsPage from "./pages/ZoneDetailsPage";
+import LocationDetailsPage from "./pages/LocationDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
