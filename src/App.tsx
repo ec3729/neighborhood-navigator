@@ -14,6 +14,7 @@ import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
 import CanvasPage from "./pages/CanvasPage";
 import ZonesPage from "./pages/ZonesPage";
+import ZoneDetailsPage from "./pages/ZoneDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

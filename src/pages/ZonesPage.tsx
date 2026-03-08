@@ -141,7 +141,7 @@ export default function ZonesPage() {
                 </TableRow>
               ) : (
                 zones.map((zone) => (
-                  <TableRow key={zone.id}>
+                  <TableRow key={zone.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/zones/${zone.id}`)}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
