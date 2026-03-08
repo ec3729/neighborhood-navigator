@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
+type LocationTypeNullable = LocationType | null;
 type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
 type SortField = "name" | "address" | "location_type" | "status" | "assigned_to" | "created_at";
 type SortDir = "asc" | "desc";
