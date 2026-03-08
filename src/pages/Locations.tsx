@@ -664,7 +664,7 @@ export default function Locations() {
                 </TableRow>
               ) : (
                 paginatedRows.map((loc) => (
-                  <TableRow key={loc.id} data-state={selectedIds.has(loc.id) ? "selected" : undefined}>
+                  <TableRow key={loc.id} data-state={selectedIds.has(loc.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => navigate(`/locations/${loc.id}`)}>
                     {isAdmin && (
                       <TableCell>
                         <Checkbox
