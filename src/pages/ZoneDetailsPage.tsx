@@ -47,12 +47,14 @@ export default function ZoneDetailsPage() {
 
   const fetchData = async () => {
     if (!id) return;
-    const [{ data: zoneData }, { data: allLocations }] = await Promise.all([
+    const [{ data: zoneData }, { data: allLocations }, { data: zonesData }] = await Promise.all([
       supabase.from("zones").select("id, name, description").eq("id", id).single(),
       supabase.from("locations").select("id, name, address, zone_id").order("address"),
+      supabase.from("zones").select("id, name, description").order("name"),
     ]);
     if (!zoneData) { toast.error("Zone not found"); navigate("/zones"); return; }
     setZone(zoneData as Zone);
+    setAllZones(((zonesData || []) as Zone[]).filter((z) => z.id !== id));
     const locs = (allLocations || []) as Location[];
     setAssignedLocations(locs.filter((l) => l.zone_id === id));
     setUnassignedLocations(locs.filter((l) => !l.zone_id || l.zone_id !== id));
