@@ -162,11 +162,12 @@ export default function LocationDetailsPage() {
         address: editAddress.trim(),
         location_type: editType as any,
         status: editStatus as any,
+        category: editCategory || null,
       })
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null });
     setEditing(false);
     toast.success("Location updated");
   };
