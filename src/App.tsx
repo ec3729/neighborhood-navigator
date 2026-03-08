@@ -13,6 +13,7 @@ import MapView from "./pages/MapView";
 import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
 import CanvasPage from "./pages/CanvasPage";
+import ZonesPage from "./pages/ZonesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
