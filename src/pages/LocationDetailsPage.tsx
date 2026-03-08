@@ -73,6 +73,7 @@ export default function LocationDetailsPage() {
   const [editName, setEditName] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editType, setEditType] = useState("residential");
+  const [editStatus, setEditStatus] = useState("not_surveyed");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
