@@ -188,12 +188,18 @@ export default function ZoneDetailsPage() {
                 </Button>
               )}
             </div>
-            <Input
-              placeholder="Search by name or address..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="mt-2"
-            />
+            <div className="flex items-center gap-4 mt-2">
+              <Input
+                placeholder="Search by name or address..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1"
+              />
+              <div className="flex items-center gap-2 shrink-0">
+                <Switch id="unzoned-only" checked={showUnzonedOnly} onCheckedChange={setShowUnzonedOnly} />
+                <Label htmlFor="unzoned-only" className="text-sm whitespace-nowrap">Unzoned only</Label>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-80 overflow-y-auto">
