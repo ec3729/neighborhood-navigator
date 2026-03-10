@@ -155,7 +155,8 @@ export default function CanvasPage() {
       editAddress !== current.address ||
       editType !== current.location_type ||
       editStatus !== current.status ||
-      (editZoneId === "none" ? null : editZoneId) !== current.zone_id
+      (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
+      (editCategory || null) !== (current.category || null)
     : false;
 
   const advance = useCallback(() => {
