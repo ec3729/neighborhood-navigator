@@ -194,6 +194,7 @@ export default function CanvasPage() {
         location_type: editType || null,
         status: editStatus,
         zone_id: editZoneId === "none" ? null : editZoneId,
+        category: editCategory || null,
       })
       .eq("id", current.id);
     setSaving(false);
