@@ -9,7 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 import {
   SortMode,
   SORT_MODE_LABELS,
@@ -31,6 +34,7 @@ interface Location {
   longitude: number | null;
   assigned_to: string | null;
   zone_id: string | null;
+  category: string | null;
 }
 
 interface Zone {
@@ -70,6 +74,8 @@ export default function CanvasPage() {
   const [editType, setEditType] = useState<LocationTypeNullable>(null);
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
   const [editZoneId, setEditZoneId] = useState<string>("none");
+  const [editCategory, setEditCategory] = useState<string>("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   // Review tracking
   const [reviews, setReviews] = useState<Map<string, ReviewAction>>(new Map());
@@ -94,7 +100,7 @@ export default function CanvasPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id");
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
@@ -138,6 +144,7 @@ export default function CanvasPage() {
     setEditType(loc.location_type);
     setEditStatus(loc.status);
     setEditZoneId(loc.zone_id || "none");
+    setEditCategory(loc.category || "");
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
@@ -148,7 +155,8 @@ export default function CanvasPage() {
       editAddress !== current.address ||
       editType !== current.location_type ||
       editStatus !== current.status ||
-      (editZoneId === "none" ? null : editZoneId) !== current.zone_id
+      (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
+      (editCategory || null) !== (current.category || null)
     : false;
 
   const advance = useCallback(() => {
@@ -186,12 +194,13 @@ export default function CanvasPage() {
         location_type: editType || null,
         status: editStatus,
         zone_id: editZoneId === "none" ? null : editZoneId,
+        category: editCategory || null,
       })
       .eq("id", current.id);
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
@@ -357,6 +366,40 @@ export default function CanvasPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    {editCategory || "— No Category"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search categories..." />
+                    <CommandList>
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem value="none" onSelect={() => { setEditCategory(""); setCategoryOpen(false); }}>
+                          — No Category
+                        </CommandItem>
+                      </CommandGroup>
+                      {CATEGORY_GROUPS.map((group) => (
+                        <CommandGroup key={group.label} heading={group.label}>
+                          {group.items.map((item) => (
+                            <CommandItem key={item} value={item} onSelect={() => { setEditCategory(item); setCategoryOpen(false); }}>
+                              {item}
+                              {editCategory === item && <Check className="ml-auto h-4 w-4" />}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label>Zone</Label>
