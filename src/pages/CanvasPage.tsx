@@ -368,6 +368,40 @@ export default function CanvasPage() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Category</Label>
+              <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    {editCategory || "— No Category"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search categories..." />
+                    <CommandList>
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem value="none" onSelect={() => { setEditCategory(""); setCategoryOpen(false); }}>
+                          — No Category
+                        </CommandItem>
+                      </CommandGroup>
+                      {CATEGORY_GROUPS.map((group) => (
+                        <CommandGroup key={group.label} heading={group.label}>
+                          {group.items.map((item) => (
+                            <CommandItem key={item} value={item} onSelect={() => { setEditCategory(item); setCategoryOpen(false); }}>
+                              {item}
+                              {editCategory === item && <Check className="ml-auto h-4 w-4" />}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
               <Label>Zone</Label>
               <Select value={editZoneId} onValueChange={setEditZoneId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
