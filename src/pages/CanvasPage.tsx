@@ -9,7 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, SkipForward, Save, ChevronLeft, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 import {
   SortMode,
   SORT_MODE_LABELS,
