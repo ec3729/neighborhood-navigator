@@ -74,6 +74,8 @@ export default function CanvasPage() {
   const [editType, setEditType] = useState<LocationTypeNullable>(null);
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
   const [editZoneId, setEditZoneId] = useState<string>("none");
+  const [editCategory, setEditCategory] = useState<string>("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   // Review tracking
   const [reviews, setReviews] = useState<Map<string, ReviewAction>>(new Map());
