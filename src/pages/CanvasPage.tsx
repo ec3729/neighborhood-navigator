@@ -147,6 +147,7 @@ export default function CanvasPage() {
     setEditStatus(loc.status);
     setEditZoneId(loc.zone_id || "none");
     setEditCategory(loc.category || "");
+    setEditAccessType(loc.access_type || "");
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
