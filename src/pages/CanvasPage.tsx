@@ -407,6 +407,18 @@ export default function CanvasPage() {
               </Popover>
             </div>
             <div className="space-y-2">
+              <Label>Access Type</Label>
+              <Select value={editAccessType || "none"} onValueChange={(v) => setEditAccessType(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None</SelectItem>
+                  <SelectItem value="Public">Public</SelectItem>
+                  <SelectItem value="Private">Private</SelectItem>
+                  <SelectItem value="Mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Zone</Label>
               <Select value={editZoneId} onValueChange={setEditZoneId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

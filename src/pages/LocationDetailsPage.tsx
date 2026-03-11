@@ -303,6 +303,26 @@ export default function LocationDetailsPage() {
                   <span className="font-medium">{location.category || <span className="text-muted-foreground/50">—</span>}</span>
                 )}
               </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Access Type</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Select value={editAccessType || "none"} onValueChange={(v) => setEditAccessType(v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— None</SelectItem>
+                      <SelectItem value="Public">Public</SelectItem>
+                      <SelectItem value="Private">Private</SelectItem>
+                      <SelectItem value="Mixed">Mixed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className="font-medium">{location.access_type || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
+            </div>
+            <div>
               <dt className="text-muted-foreground">Zone</dt>
               <dd className="mt-0.5">
                 {zoneName ? (
