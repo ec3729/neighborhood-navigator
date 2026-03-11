@@ -35,6 +35,7 @@ interface Location {
   assigned_to: string | null;
   zone_id: string | null;
   category: string | null;
+  access_type: string | null;
 }
 
 interface Zone {
