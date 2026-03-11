@@ -205,7 +205,7 @@ export default function CanvasPage() {
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
