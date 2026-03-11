@@ -102,7 +102,7 @@ export default function CanvasPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category");
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category, access_type");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
