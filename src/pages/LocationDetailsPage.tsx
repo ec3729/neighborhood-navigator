@@ -167,6 +167,7 @@ export default function LocationDetailsPage() {
         location_type: editType as any,
         status: editStatus as any,
         category: editCategory || null,
+        access_type: editAccessType || null,
       })
       .eq("id", location.id);
     setSaving(false);
