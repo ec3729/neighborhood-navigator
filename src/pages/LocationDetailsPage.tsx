@@ -80,6 +80,7 @@ export default function LocationDetailsPage() {
   const [editType, setEditType] = useState("residential");
   const [editStatus, setEditStatus] = useState("not_surveyed");
   const [editCategory, setEditCategory] = useState("");
+  const [editAccessType, setEditAccessType] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
