@@ -46,6 +46,7 @@ interface Location {
   assigned_to: string | null;
   zone_id: string | null;
   category: string | null;
+  access_type: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,6 +80,7 @@ export default function LocationDetailsPage() {
   const [editType, setEditType] = useState("residential");
   const [editStatus, setEditStatus] = useState("not_surveyed");
   const [editCategory, setEditCategory] = useState("");
+  const [editAccessType, setEditAccessType] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -144,6 +146,7 @@ export default function LocationDetailsPage() {
     setEditAddress(location.address);
     setEditType(location.location_type || "residential");
     setEditCategory(location.category || "");
+    setEditAccessType(location.access_type || "");
     setEditStatus(location.status);
     setEditing(true);
   };
@@ -164,11 +167,12 @@ export default function LocationDetailsPage() {
         location_type: editType as any,
         status: editStatus as any,
         category: editCategory || null,
+        access_type: editAccessType || null,
       })
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null });
     setEditing(false);
     toast.success("Location updated");
   };
@@ -299,6 +303,26 @@ export default function LocationDetailsPage() {
                   <span className="font-medium">{location.category || <span className="text-muted-foreground/50">—</span>}</span>
                 )}
               </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Access Type</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Select value={editAccessType || "none"} onValueChange={(v) => setEditAccessType(v === "none" ? "" : v)}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— None</SelectItem>
+                      <SelectItem value="Public">Public</SelectItem>
+                      <SelectItem value="Private">Private</SelectItem>
+                      <SelectItem value="Mixed">Mixed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className="font-medium">{location.access_type || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
+            </div>
+            <div>
               <dt className="text-muted-foreground">Zone</dt>
               <dd className="mt-0.5">
                 {zoneName ? (

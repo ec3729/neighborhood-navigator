@@ -35,6 +35,7 @@ interface Location {
   assigned_to: string | null;
   zone_id: string | null;
   category: string | null;
+  access_type: string | null;
 }
 
 interface Zone {
@@ -75,6 +76,7 @@ export default function CanvasPage() {
   const [editStatus, setEditStatus] = useState<SurveyStatus>("not_surveyed");
   const [editZoneId, setEditZoneId] = useState<string>("none");
   const [editCategory, setEditCategory] = useState<string>("");
+  const [editAccessType, setEditAccessType] = useState<string>("");
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   // Review tracking
@@ -100,7 +102,7 @@ export default function CanvasPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category");
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category, access_type");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
@@ -145,6 +147,7 @@ export default function CanvasPage() {
     setEditStatus(loc.status);
     setEditZoneId(loc.zone_id || "none");
     setEditCategory(loc.category || "");
+    setEditAccessType(loc.access_type || "");
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
@@ -156,7 +159,8 @@ export default function CanvasPage() {
       editType !== current.location_type ||
       editStatus !== current.status ||
       (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
-      (editCategory || null) !== (current.category || null)
+      (editCategory || null) !== (current.category || null) ||
+      (editAccessType || null) !== (current.access_type || null)
     : false;
 
   const advance = useCallback(() => {
@@ -195,12 +199,13 @@ export default function CanvasPage() {
         status: editStatus,
         zone_id: editZoneId === "none" ? null : editZoneId,
         category: editCategory || null,
+        access_type: editAccessType || null,
       })
       .eq("id", current.id);
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
@@ -400,6 +405,18 @@ export default function CanvasPage() {
                   </Command>
                 </PopoverContent>
               </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>Access Type</Label>
+              <Select value={editAccessType || "none"} onValueChange={(v) => setEditAccessType(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None</SelectItem>
+                  <SelectItem value="Public">Public</SelectItem>
+                  <SelectItem value="Private">Private</SelectItem>
+                  <SelectItem value="Mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Zone</Label>

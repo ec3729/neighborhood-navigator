@@ -1,0 +1,1 @@
+ALTER TABLE public.locations ADD COLUMN access_type text NULL;
