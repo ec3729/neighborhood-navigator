@@ -159,7 +159,8 @@ export default function CanvasPage() {
       editType !== current.location_type ||
       editStatus !== current.status ||
       (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
-      (editCategory || null) !== (current.category || null)
+      (editCategory || null) !== (current.category || null) ||
+      (editAccessType || null) !== (current.access_type || null)
     : false;
 
   const advance = useCallback(() => {
