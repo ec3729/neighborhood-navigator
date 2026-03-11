@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       locations: {
         Row: {
+          access_type: string | null
           address: string
           assigned_to: string | null
           category: string | null
@@ -31,6 +32,7 @@ export type Database = {
           zone_id: string | null
         }
         Insert: {
+          access_type?: string | null
           address: string
           assigned_to?: string | null
           category?: string | null
@@ -46,6 +48,7 @@ export type Database = {
           zone_id?: string | null
         }
         Update: {
+          access_type?: string | null
           address?: string
           assigned_to?: string | null
           category?: string | null
