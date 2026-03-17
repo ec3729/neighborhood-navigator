@@ -156,6 +156,7 @@ export default function LocationDetailsPage() {
     setEditType(location.location_type || "residential");
     setEditCategory(location.category || "");
     setEditAccessType(location.access_type || "");
+    setEditNotes(location.notes || "");
     setEditStatus(location.status);
     setEditing(true);
   };
