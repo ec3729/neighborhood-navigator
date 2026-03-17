@@ -103,3 +103,23 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+/* Leaflet overrides */
+.path-number-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: white;
+  font-weight: 700;
+  padding: 0 !important;
+}
+.path-number-tooltip::before {
+  display: none !important;
+}
+
+.leaflet-control-layers {
+  border-radius: 0.5rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--card)) !important;
+}
+
