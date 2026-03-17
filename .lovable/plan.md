@@ -1,44 +1,38 @@
 
 
-## Team Management Page
+## Admin Review Page
 
 ### Overview
-Replace the placeholder TeamPage with a full admin team management interface. Admins can view all users with their roles, change roles, and remove team members.
+Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
 
-### Data Sources
-- `profiles` table: `user_id`, `full_name`, `avatar_url`
-- `user_roles` table: `user_id`, `role`
-- Join them client-side by `user_id`
+### Changes
 
-### UI Components
+**New file: `src/pages/ReviewPage.tsx`**
+- Admin-only page (redirect non-admins to dashboard)
+- Fetch all locations with zone names and surveyor profiles
+- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
+- Clickable rows to navigate to location details
+- Filters:
+  - Text search (name/address)
+  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
+  - Type dropdown (All / Residential / Business / Vacant / Public Space)
+  - Zone dropdown
+  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
+- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
+- Pagination (25 per page, same pattern as Locations)
 
-**Team members table** showing:
-- Avatar (initials fallback) + Full Name
-- Email (from profiles or user metadata — note: email isn't in profiles, so we show full_name only)
-- Role (badge: Admin / Surveyor / Viewer)
-- Joined date (`profiles.created_at`)
-- Actions: Change role dropdown, Remove member (with confirmation)
+**`src/components/AppSidebar.tsx`**
+- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
 
-**Filters**: Text search by name, role filter dropdown
+**`src/components/MobileNav.tsx`**
+- No change needed (admin items aren't in mobile nav currently)
 
-### Functionality
-1. **View all members**: Fetch all profiles + user_roles, merge by `user_id`
-2. **Change role**: Admin updates `user_roles` table for a user — use a Select dropdown inline or in a dialog. Prevent admin from changing their own role.
-3. **Remove member**: Delete from `user_roles` (with AlertDialog confirmation). Prevent self-removal.
+**`src/App.tsx`**
+- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
 
-### File Changes
-
-**`src/pages/TeamPage.tsx`** — Full rewrite:
-- Admin guard (redirect non-admins)
-- Fetch profiles + user_roles, merge into a team member list
-- Table with Avatar, Name, Role badge, Joined date, Actions column
-- Search filter + role filter
-- Role change via Select component → update `user_roles`
-- Remove member via AlertDialog → delete from `user_roles`
-- Toast notifications for success/error
-
-### Patterns
-- Follow the same admin guard pattern from ReviewPage (`useEffect` redirect)
-- Follow the same table/filter patterns from ZonesPage
-- Use existing UI components: Table, Badge, Select, AlertDialog, Avatar, Button, Input
+### Date Filter Implementation
+- Two date states: `dateFrom` and `dateTo`
+- Use the Shadcn Calendar in a Popover for each
+- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
+- A "Clear dates" button to reset
 
