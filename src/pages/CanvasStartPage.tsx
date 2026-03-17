@@ -28,6 +28,7 @@ export default function CanvasStartPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [unzonedCount, setUnzonedCount] = useState(0);
   const [selectedZone, setSelectedZone] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
