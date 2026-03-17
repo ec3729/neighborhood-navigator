@@ -240,8 +240,8 @@ export default function CanvasPage() {
       <div className="p-6 max-w-2xl mx-auto text-center space-y-4">
         <h1 className="text-2xl font-bold font-display">Canvas Review</h1>
         <p className="text-muted-foreground">No locations to review.</p>
-        <Button variant="outline" onClick={() => navigate("/locations")}>
-          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Locations
+        <Button variant="outline" onClick={() => navigate("/canvas")}>
+          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Canvas
         </Button>
       </div>
     );
