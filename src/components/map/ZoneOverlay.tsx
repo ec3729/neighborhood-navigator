@@ -60,7 +60,7 @@ interface ZoneOverlayProps {
 
 export default function ZoneOverlay({ zones }: ZoneOverlayProps) {
   return (
-    <>
+    <LayerGroup>
       {zones.map((zone, i) => {
         if (zone.positions.length < 3) return null;
         const hull = expandHull(convexHull(zone.positions));
@@ -85,6 +85,6 @@ export default function ZoneOverlay({ zones }: ZoneOverlayProps) {
           </Polygon>
         );
       })}
-    </>
+    </LayerGroup>
   );
 }

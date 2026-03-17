@@ -21,7 +21,7 @@ export default function CanvassPathLayer({ locations }: CanvassPathLayerProps) {
   const positions = sorted.map((l) => [l.latitude!, l.longitude!] as [number, number]);
 
   return (
-    <>
+    <LayerGroup>
       <Polyline
         positions={positions}
         pathOptions={{
@@ -48,6 +48,6 @@ export default function CanvassPathLayer({ locations }: CanvassPathLayerProps) {
           </Tooltip>
         </CircleMarker>
       ))}
-    </>
+    </LayerGroup>
   );
 }
