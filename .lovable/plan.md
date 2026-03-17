@@ -1,38 +1,32 @@
 
 
-## Admin Review Page
+## Fix: Preserve progress when changing sort mode
 
-### Overview
-Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
+When the user changes sort mode mid-session, the current effect (line 134-141) resets `currentIndex`, `reviews`, and `finished`. Instead, we should re-sort the locations and remap the user's position to the same location they were viewing.
 
-### Changes
+### Changes to `src/pages/CanvassPage.tsx`
 
-**New file: `src/pages/ReviewPage.tsx`**
-- Admin-only page (redirect non-admins to dashboard)
-- Fetch all locations with zone names and surveyor profiles
-- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
-- Clickable rows to navigate to location details
-- Filters:
-  - Text search (name/address)
-  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
-  - Type dropdown (All / Residential / Business / Vacant / Public Space)
-  - Zone dropdown
-  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
-- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
-- Pagination (25 per page, same pattern as Locations)
+Modify the re-sort `useEffect` (lines 134-141):
 
-**`src/components/AppSidebar.tsx`**
-- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
+1. Before re-sorting, capture the current location's `id`
+2. Apply the new sort order
+3. Find the index of that same location in the newly sorted array and set `currentIndex` to it (fallback to 0 if not found)
+4. **Do not** reset `reviews` or `finished`
 
-**`src/components/MobileNav.tsx`**
-- No change needed (admin items aren't in mobile nav currently)
+```typescript
+useEffect(() => {
+  if (rawLocationsRef.current.length > 0) {
+    const currentId = locations[currentIndex]?.id;
+    applySort(rawLocationsRef.current, sortMode);
+    // After applySort updates locations via setState, find the same location
+    // We need to compute the new sorted array inline to get the new index
+    const { sorted } = sortLocationsByStreetGroups(rawLocationsRef.current);
+    const newList = sortMode === "street_groups" ? sorted : rawLocationsRef.current;
+    const newIdx = currentId ? newList.findIndex(l => l.id === currentId) : 0;
+    setCurrentIndex(newIdx >= 0 ? newIdx : 0);
+  }
+}, [sortMode]);
+```
 
-**`src/App.tsx`**
-- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
-
-### Date Filter Implementation
-- Two date states: `dateFrom` and `dateTo`
-- Use the Shadcn Calendar in a Popover for each
-- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
-- A "Clear dates" button to reset
+No other files affected. Reviews, finished state, and progress counters are fully preserved.
 
