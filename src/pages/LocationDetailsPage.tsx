@@ -65,6 +65,7 @@ export default function LocationDetailsPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const canEdit = hasRole("admin") || hasRole("surveyor");
+  const canManageAssignees = hasRole("admin");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
   const [assignedSurveyors, setAssignedSurveyors] = useState<{ user_id: string; full_name: string }[]>([]);
@@ -179,6 +180,21 @@ export default function LocationDetailsPage() {
     setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null });
     setEditing(false);
     toast.success("Location updated");
+  };
+
+  const handleRemoveAssignee = async (userId: string, name: string) => {
+    if (!id) return;
+    const { error } = await supabase
+      .from("location_assignments")
+      .delete()
+      .eq("location_id", id)
+      .eq("user_id", userId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setAssignedSurveyors((prev) => prev.filter((s) => s.user_id !== userId));
+    toast.success(`Removed ${name}`);
   };
 
   if (!location) return null;
@@ -343,10 +359,27 @@ export default function LocationDetailsPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Assigned To</dt>
-              <dd className="font-medium mt-0.5">
-                {assignedSurveyors.length > 0
-                  ? assignedSurveyors.map(s => s.full_name).join(", ")
-                  : <span className="text-muted-foreground/50">Unassigned</span>}
+              <dd className="mt-0.5">
+                {assignedSurveyors.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {assignedSurveyors.map((s) => (
+                      <Badge key={s.user_id} variant="secondary" className="gap-1 pr-1.5">
+                        {s.full_name}
+                        {canManageAssignees && (
+                          <button
+                            onClick={() => handleRemoveAssignee(s.user_id, s.full_name)}
+                            className="ml-0.5 rounded-full hover:bg-destructive/20 p-0.5"
+                            aria-label={`Remove ${s.full_name}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground/50 font-medium">Unassigned</span>
+                )}
               </dd>
             </div>
             {(location.latitude != null && location.longitude != null) && (
