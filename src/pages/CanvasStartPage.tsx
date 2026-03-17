@@ -79,12 +79,27 @@ export default function CanvasStartPage() {
     fetchData();
   }, []);
 
-  const handleStart = () => {
-    if (selectedZone === "all") {
-      navigate("/canvas/review");
-    } else {
-      navigate(`/canvas/review?zone=${selectedZone}`);
+  const [totalByStatus, setTotalByStatus] = useState<Map<string, number>>(new Map());
+  const [unzonedByStatus, setUnzonedByStatus] = useState<Map<string, number>>(new Map());
+  const [zoneStatusCounts, setZoneStatusCounts] = useState<Map<string, Map<string, number>>>(new Map());
+
+  const getFilteredCount = (zoneId: string) => {
+    if (selectedStatus === "all") {
+      if (zoneId === "all") return totalCount;
+      if (zoneId === "unzoned") return unzonedCount;
+      return zones.find(z => z.id === zoneId)?.locationCount || 0;
     }
+    if (zoneId === "all") return totalByStatus.get(selectedStatus) || 0;
+    if (zoneId === "unzoned") return unzonedByStatus.get(selectedStatus) || 0;
+    return zoneStatusCounts.get(zoneId)?.get(selectedStatus) || 0;
+  };
+
+  const handleStart = () => {
+    const params = new URLSearchParams();
+    if (selectedZone !== "all") params.set("zone", selectedZone);
+    if (selectedStatus !== "all") params.set("status", selectedStatus);
+    const qs = params.toString();
+    navigate(`/canvas/review${qs ? `?${qs}` : ""}`);
   };
 
   if (loading) {
