@@ -38,7 +38,8 @@ const App = () => (
               <Route path="/map" element={<MapView />} />
               <Route path="/team" element={<TeamPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/canvas" element={<CanvasPage />} />
+              <Route path="/canvas" element={<CanvasStartPage />} />
+              <Route path="/canvas/review" element={<CanvasPage />} />
               <Route path="/zones" element={<ZonesPage />} />
               <Route path="/zones/:id" element={<ZoneDetailsPage />} />
             </Route>
