@@ -257,7 +257,7 @@ export default function MapView() {
                       </Popup>
                     </CircleMarker>
                   ))}
-                </>
+                </LayerGroup>
               </LayersControl.Overlay>
 
               <LayersControl.Overlay name="Canvass Path">
