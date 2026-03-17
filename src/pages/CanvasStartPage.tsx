@@ -164,7 +164,7 @@ export default function CanvasStartPage() {
                   )}
                 </div>
               </div>
-              <Badge variant="secondary">{zone.locationCount}</Badge>
+              <Badge variant="secondary">{getFilteredCount(zone.id)}</Badge>
             </CardContent>
           </Card>
         ))}
