@@ -104,10 +104,15 @@ export default function LocationDetailsPage() {
         if (z) setZoneName(z.name);
       }
 
-      // Fetch assigned surveyor name
-      if (loc.assigned_to) {
-        const { data: p } = await supabase.from("profiles").select("full_name").eq("user_id", loc.assigned_to).single();
-        if (p) setSurveyorName(p.full_name);
+      // Fetch assigned surveyors via junction table
+      const { data: assignments } = await supabase
+        .from("location_assignments")
+        .select("user_id")
+        .eq("location_id", id);
+      if (assignments && assignments.length > 0) {
+        const userIds = assignments.map(a => a.user_id);
+        const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", userIds);
+        if (profiles) setAssignedSurveyors(profiles.map(p => ({ user_id: p.user_id, full_name: p.full_name || "Unnamed" })));
       }
 
       // Fetch surveys
