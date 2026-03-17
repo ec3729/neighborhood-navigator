@@ -413,14 +413,10 @@ export default function CanvasPage() {
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={editStatus} onValueChange={(v) => setEditStatus(v as SurveyStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Badge variant={current.status === "surveyed" ? "default" : current.status === "in_progress" ? "secondary" : "outline"}>
+                  {statusLabels[current.status]}
+                </Badge>
+                <p className="text-xs text-muted-foreground">Auto-managed during canvassing</p>
               </div>
             </div>
             <div className="space-y-2">
