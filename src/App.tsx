@@ -17,6 +17,7 @@ import CanvasStartPage from "./pages/CanvasStartPage";
 import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailsPage from "./pages/ZoneDetailsPage";
 import LocationDetailsPage from "./pages/LocationDetailsPage";
+import ReviewPage from "./pages/ReviewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/canvas/review" element={<CanvasPage />} />
               <Route path="/zones" element={<ZonesPage />} />
               <Route path="/zones/:id" element={<ZoneDetailsPage />} />
+              <Route path="/review" element={<ReviewPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
