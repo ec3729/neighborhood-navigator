@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users, Layers, ClipboardCheck, FileSearch } from "lucide-react";
+import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users, Layers, ClipboardCheck, FileSearch, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
