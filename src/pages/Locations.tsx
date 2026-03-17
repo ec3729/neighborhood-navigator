@@ -107,9 +107,23 @@ export default function Locations() {
   const [zoneDescription, setZoneDescription] = useState("");
   const [savingZone, setSavingZone] = useState(false);
 
+  // Assignment map: locationId -> userId[]
+  const [assignmentMap, setAssignmentMap] = useState<Map<string, string[]>>(new Map());
+
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
-    if (data) setLocations(data as Location[]);
+    if (data) setLocations(data as unknown as Location[]);
+    // Fetch assignments
+    const { data: assignments } = await supabase.from("location_assignments").select("location_id, user_id");
+    if (assignments) {
+      const map = new Map<string, string[]>();
+      for (const a of assignments) {
+        const arr = map.get(a.location_id) || [];
+        arr.push(a.user_id);
+        map.set(a.location_id, arr);
+      }
+      setAssignmentMap(map);
+    }
   };
 
   const fetchZones = async () => {
