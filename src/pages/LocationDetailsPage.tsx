@@ -343,7 +343,12 @@ export default function LocationDetailsPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Assigned To</dt>
-              <dd className="font-medium mt-0.5">{surveyorName || <span className="text-muted-foreground/50">Unassigned</span>}</dd>
+              <dd className="font-medium mt-0.5">
+                {assignedSurveyors.length > 0
+                  ? assignedSurveyors.map(s => s.full_name).join(", ")
+                  : <span className="text-muted-foreground/50">Unassigned</span>}
+              </dd>
+            </div>
             </div>
             {(location.latitude != null && location.longitude != null) && (
               <div>

@@ -702,7 +702,11 @@ export default function Locations() {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      {loc.assigned_to ? surveyorMap.get(loc.assigned_to) || "Unknown" : <span className="text-muted-foreground/50">Unassigned</span>}
+                      {(() => {
+                        const ids = assignmentMap.get(loc.id) || [];
+                        if (ids.length === 0) return <span className="text-muted-foreground/50">Unassigned</span>;
+                        return ids.map(id => surveyorMap.get(id) || "Unknown").join(", ");
+                      })()}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
                       {new Date(loc.created_at).toLocaleDateString()}
