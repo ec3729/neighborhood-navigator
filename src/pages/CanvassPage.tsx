@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export default function CanvasPage() {
   const [finished, setFinished] = useState(false);
 
   // Raw data for re-sorting
-  const [rawLocations, setRawLocations] = useState<Location[]>([]);
+  const rawLocationsRef = useRef<Location[]>([]);
 
   const applySort = useCallback((data: Location[], mode: SortMode) => {
     if (mode === "street_groups") {
@@ -123,7 +123,7 @@ export default function CanvasPage() {
       const { data, error } = await query;
       if (error) { toast.error("Failed to load locations"); setLoading(false); return; }
       const raw = (data || []) as Location[];
-      setRawLocations(raw);
+      rawLocationsRef.current = raw;
       applySort(raw, sortMode);
       setLoading(false);
     };
@@ -132,13 +132,13 @@ export default function CanvasPage() {
 
   // Re-sort when mode changes
   useEffect(() => {
-    if (rawLocations.length > 0) {
-      applySort(rawLocations, sortMode);
+    if (rawLocationsRef.current.length > 0) {
+      applySort(rawLocationsRef.current, sortMode);
       setCurrentIndex(0);
       setReviews(new Map());
       setFinished(false);
     }
-  }, [sortMode, applySort, rawLocations]);
+  }, [sortMode, applySort]);
 
   // Sync editable fields when index changes
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function CanvasPage() {
       if (error) { toast.error("Failed to update status"); return; }
       const updatedLoc = { ...current, status: "in_progress" as SurveyStatus };
       setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
-      setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+      rawLocationsRef.current = rawLocationsRef.current.map((l) => l.id === current.id ? updatedLoc : l);
     }
     setReviews((prev) => new Map(prev).set(current.id, "confirmed"));
     advance();
@@ -225,7 +225,7 @@ export default function CanvasPage() {
 
     const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: autoStatus as SurveyStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
-    setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+    rawLocationsRef.current = rawLocationsRef.current.map((l) => l.id === current.id ? updatedLoc : l);
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
     toast.success("Saved");
     advance();
@@ -254,10 +254,8 @@ export default function CanvasPage() {
           reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
         )
       );
-      setRawLocations((prev) =>
-        prev.map((l) =>
-          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
-        )
+      rawLocationsRef.current = rawLocationsRef.current.map((l) =>
+        reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
       );
       toast.success(`${reviewedIds.length} location(s) marked as surveyed`);
     };
