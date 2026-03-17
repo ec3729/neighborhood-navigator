@@ -185,7 +185,7 @@ export default function CanvasStartPage() {
                   <p className="text-xs text-muted-foreground">Locations not assigned to any zone</p>
                 </div>
               </div>
-              <Badge variant="secondary">{unzonedCount}</Badge>
+              <Badge variant="secondary">{getFilteredCount("unzoned")}</Badge>
             </CardContent>
           </Card>
         )}
