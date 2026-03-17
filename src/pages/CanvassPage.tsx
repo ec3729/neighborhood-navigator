@@ -161,7 +161,6 @@ export default function CanvasPage() {
     ? editName !== (current.name || "") ||
       editAddress !== current.address ||
       editType !== current.location_type ||
-      editStatus !== current.status ||
       (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
       (editCategory || null) !== (current.category || null) ||
       (editAccessType || null) !== (current.access_type || null) ||
