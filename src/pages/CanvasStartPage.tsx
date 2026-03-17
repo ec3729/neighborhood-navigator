@@ -63,6 +63,9 @@ export default function CanvasStartPage() {
 
       setTotalCount(total);
       setUnzonedCount(unzoned);
+      setTotalByStatus(totalByStatus);
+      setUnzonedByStatus(unzonedByStatus);
+      setZoneStatusCounts(zoneStatusCounts);
       setZones(
         (zonesData || []).map((z: any) => ({
           id: z.id,
