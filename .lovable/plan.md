@@ -1,38 +1,47 @@
 
 
-## Admin Review Page
+## Map View — Multi-Layer Interactive Map
 
-### Overview
-Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
+Build out the `/map` page with Leaflet, combining all four approaches into a single cohesive map with toggleable layers.
 
-### Changes
+### Layout: Side-by-Side List + Map
 
-**New file: `src/pages/ReviewPage.tsx`**
-- Admin-only page (redirect non-admins to dashboard)
-- Fetch all locations with zone names and surveyor profiles
-- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
-- Clickable rows to navigate to location details
-- Filters:
-  - Text search (name/address)
-  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
-  - Type dropdown (All / Residential / Business / Vacant / Public Space)
-  - Zone dropdown
-  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
-- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
-- Pagination (25 per page, same pattern as Locations)
+- Left panel (~300px, collapsible on mobile): scrollable location list grouped by street, showing name/address, status badge, and category
+- Right panel: full-height Leaflet map
+- Clicking a list item pans to the pin and opens its popup; clicking a pin highlights it in the list
 
-**`src/components/AppSidebar.tsx`**
-- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
+### Map Layers (toggle via layer control)
 
-**`src/components/MobileNav.tsx`**
-- No change needed (admin items aren't in mobile nav currently)
+**1. Status Pins (default layer)**
+- Each location gets a circle marker color-coded by status: gray = not surveyed, amber = in progress, green = surveyed
+- Popup shows name, address, category, status, and a link to `/locations/:id`
+- At low zoom, markers cluster using `react-leaflet-markercluster` with cluster color based on completion percentage
 
-**`src/App.tsx`**
-- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
+**2. Canvass Path**
+- Polyline connecting locations in street-groups sort order (reuse `sortLocationsByStreetGroups`)
+- Numbered markers at each stop showing the canvass sequence
+- Dashed line style to distinguish from roads
 
-### Date Filter Implementation
-- Two date states: `dateFrom` and `dateTo`
-- Use the Shadcn Calendar in a Popover for each
-- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
-- A "Clear dates" button to reset
+**3. Zone Overlays**
+- If zones have associated locations with coordinates, draw a convex hull or bounding box per zone
+- Color-fill with low opacity, labeled with zone name and completion stats (e.g., "Zone A — 4/7 surveyed")
+
+### Filter Controls (top bar)
+- Filter by zone, status, and category (mirroring canvass start page filters)
+- Toggle layers on/off via Leaflet's built-in layer control
+
+### Technical Details
+
+**New dependencies**: `leaflet`, `react-leaflet`, `react-leaflet-markercluster`, `@types/leaflet`
+
+**Files to create/modify**:
+- `src/pages/MapView.tsx` — replace placeholder with full implementation
+- `src/components/map/MapSidebar.tsx` — location list panel
+- `src/components/map/StatusMarker.tsx` — color-coded circle marker component
+- `src/components/map/CanvassPathLayer.tsx` — polyline + numbered stops
+- `src/components/map/ZoneOverlay.tsx` — zone boundary polygons
+
+**Data**: Single query to `locations` table (with zone join) — all 10 locations with lat/lng. Map centers on the bounding box midpoint (~40.716, -73.998) at zoom ~16.
+
+**No database changes needed.** All data (coordinates, status, zone, category) already exists.
 
