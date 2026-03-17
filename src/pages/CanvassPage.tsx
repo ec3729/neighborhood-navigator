@@ -180,8 +180,19 @@ export default function CanvasPage() {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }, [currentIndex]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!current) return;
+    // Auto-set to in_progress if not_surveyed
+    if (current.status === "not_surveyed") {
+      const { error } = await supabase
+        .from("locations")
+        .update({ status: "in_progress" as const })
+        .eq("id", current.id);
+      if (error) { toast.error("Failed to update status"); return; }
+      const updatedLoc = { ...current, status: "in_progress" as SurveyStatus };
+      setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+      setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+    }
     setReviews((prev) => new Map(prev).set(current.id, "confirmed"));
     advance();
   };
@@ -195,24 +206,25 @@ export default function CanvasPage() {
   const handleSaveAndNext = async () => {
     if (!current) return;
     setSaving(true);
+    // Force in_progress unless already surveyed
+    const autoStatus = current.status === "surveyed" ? "surveyed" : "in_progress";
     const { error } = await supabase
       .from("locations")
       .update({
         name: editName.trim() || null,
         address: editAddress,
         location_type: editType || null,
-        status: editStatus,
+        status: autoStatus as SurveyStatus,
         zone_id: editZoneId === "none" ? null : editZoneId,
         category: editCategory || null,
         access_type: editAccessType || null,
         notes: editNotes.trim() || null,
-        ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       })
       .eq("id", current.id);
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: autoStatus as SurveyStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
