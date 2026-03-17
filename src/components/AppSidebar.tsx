@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users, Layers } from "lucide-react";
+import { MapPin, LayoutDashboard, Map, List, LogOut, Settings, Users, Layers, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/map", label: "Map View", icon: Map },
   { to: "/locations", label: "Locations", icon: List },
+  { to: "/canvas", label: "Canvas", icon: ClipboardCheck },
 ];
 
 const adminItems = [

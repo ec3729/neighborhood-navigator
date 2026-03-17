@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Map, List, Menu } from "lucide-react";
+import { LayoutDashboard, Map, List, Menu, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/map", label: "Map", icon: Map },
   { to: "/locations", label: "List", icon: List },
+  { to: "/canvas", label: "Canvas", icon: ClipboardCheck },
   { to: "/settings", label: "More", icon: Menu },
 ];
 
