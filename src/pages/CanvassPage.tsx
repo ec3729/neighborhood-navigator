@@ -161,7 +161,6 @@ export default function CanvasPage() {
     ? editName !== (current.name || "") ||
       editAddress !== current.address ||
       editType !== current.location_type ||
-      editStatus !== current.status ||
       (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
       (editCategory || null) !== (current.category || null) ||
       (editAccessType || null) !== (current.access_type || null) ||
@@ -180,8 +179,19 @@ export default function CanvasPage() {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }, [currentIndex]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!current) return;
+    // Auto-set to in_progress if not_surveyed
+    if (current.status === "not_surveyed") {
+      const { error } = await supabase
+        .from("locations")
+        .update({ status: "in_progress" as const })
+        .eq("id", current.id);
+      if (error) { toast.error("Failed to update status"); return; }
+      const updatedLoc = { ...current, status: "in_progress" as SurveyStatus };
+      setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+      setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+    }
     setReviews((prev) => new Map(prev).set(current.id, "confirmed"));
     advance();
   };
@@ -195,30 +205,64 @@ export default function CanvasPage() {
   const handleSaveAndNext = async () => {
     if (!current) return;
     setSaving(true);
+    // Force in_progress unless already surveyed
+    const autoStatus = current.status === "surveyed" ? "surveyed" : "in_progress";
     const { error } = await supabase
       .from("locations")
       .update({
         name: editName.trim() || null,
         address: editAddress,
         location_type: editType || null,
-        status: editStatus,
+        status: autoStatus as SurveyStatus,
         zone_id: editZoneId === "none" ? null : editZoneId,
         category: editCategory || null,
         access_type: editAccessType || null,
         notes: editNotes.trim() || null,
-        ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       })
       .eq("id", current.id);
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: autoStatus as SurveyStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
     toast.success("Saved");
     advance();
   };
+
+  // Batch update to "surveyed" when session ends
+  useEffect(() => {
+    if (!finished) return;
+    const reviewedIds = [...reviews.entries()]
+      .filter(([, action]) => action === "confirmed" || action === "updated")
+      .map(([id]) => id);
+    if (reviewedIds.length === 0) return;
+
+    const batchUpdate = async () => {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("locations")
+        .update({ status: "surveyed" as const, surveyed_at: now })
+        .in("id", reviewedIds);
+      if (error) {
+        toast.error("Failed to mark locations as surveyed");
+        return;
+      }
+      setLocations((prev) =>
+        prev.map((l) =>
+          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
+        )
+      );
+      setRawLocations((prev) =>
+        prev.map((l) =>
+          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
+        )
+      );
+      toast.success(`${reviewedIds.length} location(s) marked as surveyed`);
+    };
+    batchUpdate();
+  }, [finished]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -369,14 +413,10 @@ export default function CanvasPage() {
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={editStatus} onValueChange={(v) => setEditStatus(v as SurveyStatus)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Badge variant={current.status === "surveyed" ? "default" : current.status === "in_progress" ? "secondary" : "outline"}>
+                  {statusLabels[current.status]}
+                </Badge>
+                <p className="text-xs text-muted-foreground">Auto-managed during canvassing</p>
               </div>
             </div>
             <div className="space-y-2">

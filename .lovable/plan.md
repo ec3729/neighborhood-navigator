@@ -1,34 +1,38 @@
 
 
-## Auto-Update Survey Status During Canvassing
+## Admin Review Page
 
-### What Changes
+### Overview
+Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
 
-**1. "Looks Good" (confirm) sets status to `in_progress`**
-- When a canvasser clicks "Looks Good", if the location's current status is `not_surveyed`, automatically update it to `in_progress` in the database before advancing. This indicates the location has been reviewed.
+### Changes
 
-**2. "Save & Next" sets status to `in_progress`**  
-- When saving edits, force the status to `in_progress` (regardless of what the status dropdown shows), unless it's already `surveyed`. This ensures any edited location is marked as actively being worked on.
+**New file: `src/pages/ReviewPage.tsx`**
+- Admin-only page (redirect non-admins to dashboard)
+- Fetch all locations with zone names and surveyor profiles
+- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
+- Clickable rows to navigate to location details
+- Filters:
+  - Text search (name/address)
+  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
+  - Type dropdown (All / Residential / Business / Vacant / Public Space)
+  - Zone dropdown
+  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
+- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
+- Pagination (25 per page, same pattern as Locations)
 
-**3. Batch update to `surveyed` when session ends**
-- When the "Review Complete" screen appears, collect all location IDs that were confirmed or updated (not skipped) during the session.
-- Make a single batch update to set their status to `surveyed` and `surveyed_at` to the current timestamp.
-- Show a toast confirming how many locations were marked as surveyed.
+**`src/components/AppSidebar.tsx`**
+- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
 
-### Code Changes (single file)
+**`src/components/MobileNav.tsx`**
+- No change needed (admin items aren't in mobile nav currently)
 
-**`src/pages/CanvassPage.tsx`**
+**`src/App.tsx`**
+- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
 
-- **`handleConfirm`**: Add a Supabase update call to set `status: 'in_progress'` if the location is currently `not_surveyed`. Update local state to reflect the change.
-
-- **`handleSaveAndNext`**: Override `editStatus` to `in_progress` when saving (unless already `surveyed`). Remove the manual status-based `surveyed_at` logic since surveyed status is now set at session end.
-
-- **`isDirty` check**: Exclude `editStatus` from the dirty check since status is now auto-managed (or keep it but auto-set status won't trigger "dirty" unnecessarily).
-
-- **New `useEffect` on `finished`**: When `finished` becomes `true`, run a batch update for all confirmed/updated location IDs → set `status = 'surveyed'` and `surveyed_at = now()`. Update local state so the summary screen reflects final counts.
-
-- **Status dropdown**: Either hide it from the canvass card (since it's auto-managed) or make it read-only to show the current state.
-
-### No database changes needed
-The existing `status` column and RLS policies already support these updates.
+### Date Filter Implementation
+- Two date states: `dateFrom` and `dateTo`
+- Use the Shadcn Calendar in a Popover for each
+- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
+- A "Clear dates" button to reset
 
