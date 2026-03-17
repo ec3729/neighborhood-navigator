@@ -378,7 +378,14 @@ export default function CanvasPage() {
       {/* Progress */}
       <div className="space-y-1">
         <Progress value={progress} className="h-2" />
-        <p className="text-xs text-muted-foreground text-right">{reviews.size} reviewed</p>
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <Badge variant="default" className="text-[10px] px-1.5 py-0">✓ {confirmedCount}</Badge>
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">✏️ {updatedCount}</Badge>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0">⏭ {skippedCount}</Badge>
+          </div>
+          <span className="text-muted-foreground">{reviews.size} reviewed</span>
+        </div>
       </div>
 
       {/* Card */}
