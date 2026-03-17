@@ -18,7 +18,7 @@ import {
   SORT_MODE_LABELS,
   StreetGroupInfo,
   sortLocationsByStreetGroups,
-} from "@/lib/canvasSorting";
+} from "@/lib/canvassSorting";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type LocationTypeNullable = LocationType | null;
