@@ -18,6 +18,7 @@ import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailsPage from "./pages/ZoneDetailsPage";
 import LocationDetailsPage from "./pages/LocationDetailsPage";
 import ReviewPage from "./pages/ReviewPage";
+import DataManagementPage from "./pages/DataManagementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
