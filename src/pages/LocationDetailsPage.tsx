@@ -48,6 +48,7 @@ interface Location {
   access_type: string | null;
   created_at: string;
   updated_at: string;
+  surveyed_at: string | null;
 }
 
 interface Survey {
@@ -173,11 +174,12 @@ export default function LocationDetailsPage() {
         status: editStatus as any,
         category: editCategory || null,
         access_type: editAccessType || null,
-      })
+        ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
+      } as any)
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
     setEditing(false);
     toast.success("Location updated");
   };
@@ -386,6 +388,12 @@ export default function LocationDetailsPage() {
               <div>
                 <dt className="text-muted-foreground">Coordinates</dt>
                 <dd className="font-medium mt-0.5">{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</dd>
+              </div>
+            )}
+            {location.surveyed_at && (
+              <div>
+                <dt className="text-muted-foreground">Surveyed</dt>
+                <dd className="font-medium mt-0.5">{new Date(location.surveyed_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</dd>
               </div>
             )}
             <div>
