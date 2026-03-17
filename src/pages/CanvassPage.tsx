@@ -242,10 +242,10 @@ export default function CanvasPage() {
   if (locations.length === 0) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center space-y-4">
-        <h1 className="text-2xl font-bold font-display">Canvas Review</h1>
+        <h1 className="text-2xl font-bold font-display">Canvass Review</h1>
         <p className="text-muted-foreground">No locations to review.</p>
-        <Button variant="outline" onClick={() => navigate("/canvas")}>
-          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Canvas
+        <Button variant="outline" onClick={() => navigate("/canvass")}>
+          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Canvass
         </Button>
       </div>
     );
