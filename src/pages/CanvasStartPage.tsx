@@ -191,9 +191,29 @@ export default function CanvasStartPage() {
         )}
       </div>
 
+      {/* Status filter */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Filter className="h-4 w-4" />
+          Status Filter
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTIONS.map((opt) => (
+            <Button
+              key={opt.value}
+              variant={selectedStatus === opt.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedStatus(opt.value)}
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Start button */}
-      <Button className="w-full" size="lg" onClick={handleStart}>
-        <Play className="h-4 w-4 mr-2" /> Start Canvassing
+      <Button className="w-full" size="lg" onClick={handleStart} disabled={getFilteredCount(selectedZone) === 0}>
+        <Play className="h-4 w-4 mr-2" /> Start Canvassing ({getFilteredCount(selectedZone)})
       </Button>
     </div>
   );
