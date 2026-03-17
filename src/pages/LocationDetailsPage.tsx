@@ -96,7 +96,7 @@ export default function LocationDetailsPage() {
         navigate("/locations");
         return;
       }
-      setLocation(loc as Location);
+      setLocation(loc as unknown as Location);
 
       // Fetch zone name
       if (loc.zone_id) {
