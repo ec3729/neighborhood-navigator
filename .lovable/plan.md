@@ -1,46 +1,20 @@
 
 
-## Add "Canvas" Mode for Location Review
+## Add `surveyed_at` Field to Locations
 
-Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
+### Database Migration
+Add a nullable `surveyed_at` timestamp column to the `locations` table:
+```sql
+ALTER TABLE public.locations ADD COLUMN surveyed_at timestamptz;
+```
 
-### How It Works
+### Code Changes
 
-1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
-2. Opens a new page (`/canvas`) showing one location at a time as a large card
-3. The card displays: name, address, type, status, assigned surveyor, and coordinates
-4. User can either:
-   - Click **"Looks Good"** to confirm and move to the next location
-   - Edit any field inline and click **"Save & Next"** to update and advance
-   - Click **"Skip"** to move on without changes
-5. A progress bar at the top shows how many locations have been reviewed
-6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
+**`src/pages/CanvasPage.tsx`** (or wherever survey completion updates location status to "surveyed")
+- When setting `status = 'surveyed'`, also set `surveyed_at = new Date().toISOString()`
 
-### What Gets Built
+**`src/pages/LocationDetailsPage.tsx`**
+- Display the `surveyed_at` date if present (e.g., "Surveyed on Mar 15, 2026")
 
-**New file: `src/pages/CanvasPage.tsx`**
-- Fetches all locations (respects current filters passed via URL search params or reviews all)
-- Maintains a `currentIndex` state to track position in the list
-- Displays an editable card with fields: name, address, location_type, status
-- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
-- "Save & Next" button updates the location in the database, then advances
-- "Skip" button advances without action
-- Progress bar using the existing Progress component
-- Summary card at the end with stats
-
-**Modified: `src/pages/Locations.tsx`**
-- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
-- Links to `/canvas` via `useNavigate`
-
-**Modified: `src/App.tsx`**
-- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
-
-### Technical Details
-
-- No database changes needed -- canvas mode reads/updates existing `locations` table
-- Uses existing RLS policies (surveyors and admins can update)
-- Editable fields use existing Input, Select, and Badge components
-- Navigation via keyboard shortcuts (left/right arrows) for power users
-- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
-- Mobile-friendly single-card layout
+Need to find exactly where location status gets updated to "surveyed" to add the timestamp write.
 
