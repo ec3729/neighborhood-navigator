@@ -179,7 +179,7 @@ export default function LocationDetailsPage() {
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
     setEditing(false);
     toast.success("Location updated");
   };
