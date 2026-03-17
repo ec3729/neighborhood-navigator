@@ -426,6 +426,10 @@ export default function CanvasPage() {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Add notes..." rows={3} />
+            </div>
+            <div className="space-y-2">
               <Label>Zone</Label>
               <Select value={editZoneId} onValueChange={setEditZoneId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

@@ -349,6 +349,16 @@ export default function LocationDetailsPage() {
                 )}
               </dd>
             </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">Notes</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Add notes..." rows={3} />
+                ) : (
+                  <span className="font-medium whitespace-pre-wrap">{location.notes || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
+            </div>
             <div>
               <dt className="text-muted-foreground">Zone</dt>
               <dd className="mt-0.5">
