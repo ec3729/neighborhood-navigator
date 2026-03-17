@@ -132,13 +132,13 @@ export default function CanvasPage() {
 
   // Re-sort when mode changes
   useEffect(() => {
-    if (rawLocations.length > 0) {
-      applySort(rawLocations, sortMode);
+    if (rawLocationsRef.current.length > 0) {
+      applySort(rawLocationsRef.current, sortMode);
       setCurrentIndex(0);
       setReviews(new Map());
       setFinished(false);
     }
-  }, [sortMode, applySort, rawLocations]);
+  }, [sortMode, applySort]);
 
   // Sync editable fields when index changes
   useEffect(() => {
