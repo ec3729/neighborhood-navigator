@@ -86,7 +86,7 @@ export default function CanvasPage() {
   const [finished, setFinished] = useState(false);
 
   // Raw data for re-sorting
-  const [rawLocations, setRawLocations] = useState<Location[]>([]);
+  const rawLocationsRef = useRef<Location[]>([]);
 
   const applySort = useCallback((data: Location[], mode: SortMode) => {
     if (mode === "street_groups") {
