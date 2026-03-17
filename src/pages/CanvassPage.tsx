@@ -300,7 +300,7 @@ export default function CanvasPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(SORT_MODE_LABELS).map(([k, v]) => (
+              {(Object.entries(SORT_MODE_LABELS) as [string, string][]).map(([k, v]) => (
                 <SelectItem key={k} value={k}>{v}</SelectItem>
               ))}
             </SelectContent>
