@@ -190,7 +190,7 @@ export default function CanvasPage() {
       if (error) { toast.error("Failed to update status"); return; }
       const updatedLoc = { ...current, status: "in_progress" as SurveyStatus };
       setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
-      setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+      rawLocationsRef.current = rawLocationsRef.current.map((l) => l.id === current.id ? updatedLoc : l);
     }
     setReviews((prev) => new Map(prev).set(current.id, "confirmed"));
     advance();
