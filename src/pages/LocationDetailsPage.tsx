@@ -173,7 +173,8 @@ export default function LocationDetailsPage() {
         status: editStatus as any,
         category: editCategory || null,
         access_type: editAccessType || null,
-      })
+        ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
+      } as any)
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
