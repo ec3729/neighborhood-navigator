@@ -232,6 +232,39 @@ export default function CanvasPage() {
     advance();
   };
 
+  // Batch update to "surveyed" when session ends
+  useEffect(() => {
+    if (!finished) return;
+    const reviewedIds = [...reviews.entries()]
+      .filter(([, action]) => action === "confirmed" || action === "updated")
+      .map(([id]) => id);
+    if (reviewedIds.length === 0) return;
+
+    const batchUpdate = async () => {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("locations")
+        .update({ status: "surveyed" as const, surveyed_at: now })
+        .in("id", reviewedIds);
+      if (error) {
+        toast.error("Failed to mark locations as surveyed");
+        return;
+      }
+      setLocations((prev) =>
+        prev.map((l) =>
+          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
+        )
+      );
+      setRawLocations((prev) =>
+        prev.map((l) =>
+          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
+        )
+      );
+      toast.success(`${reviewedIds.length} location(s) marked as surveyed`);
+    };
+    batchUpdate();
+  }, [finished]);
+
   // Keyboard shortcuts
   useEffect(() => {
     if (finished || loading) return;
