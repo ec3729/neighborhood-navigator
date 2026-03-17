@@ -31,7 +31,6 @@ interface Location {
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
-  assigned_to: string | null;
   zone_id: string | null;
   created_at: string;
 }
@@ -108,9 +107,23 @@ export default function Locations() {
   const [zoneDescription, setZoneDescription] = useState("");
   const [savingZone, setSavingZone] = useState(false);
 
+  // Assignment map: locationId -> userId[]
+  const [assignmentMap, setAssignmentMap] = useState<Map<string, string[]>>(new Map());
+
   const fetchLocations = async () => {
     const { data } = await supabase.from("locations").select("*").order("created_at", { ascending: false });
-    if (data) setLocations(data as Location[]);
+    if (data) setLocations(data as unknown as Location[]);
+    // Fetch assignments
+    const { data: assignments } = await supabase.from("location_assignments").select("location_id, user_id");
+    if (assignments) {
+      const map = new Map<string, string[]>();
+      for (const a of assignments) {
+        const arr = map.get(a.location_id) || [];
+        arr.push(a.user_id);
+        map.set(a.location_id, arr);
+      }
+      setAssignmentMap(map);
+    }
   };
 
   const fetchZones = async () => {
@@ -230,7 +243,7 @@ export default function Locations() {
     const matchesType = typeFilter === "all" || l.location_type === typeFilter;
     const matchesAssign =
       assignFilter === "all" ||
-      (assignFilter === "unassigned" ? !l.assigned_to : l.assigned_to === assignFilter);
+      (assignFilter === "unassigned" ? !(assignmentMap.get(l.id)?.length) : (assignmentMap.get(l.id) || []).includes(assignFilter));
     const matchesZone =
       zoneFilter === "all" ||
       (zoneFilter === "unzoned" ? !l.zone_id : l.zone_id === zoneFilter);
@@ -260,9 +273,9 @@ export default function Locations() {
         cmp = a.status.localeCompare(b.status);
         break;
       case "assigned_to": {
-        const nameA = a.assigned_to ? surveyorMap.get(a.assigned_to) || "" : "";
-        const nameB = b.assigned_to ? surveyorMap.get(b.assigned_to) || "" : "";
-        cmp = nameA.localeCompare(nameB);
+        const namesA = (assignmentMap.get(a.id) || []).map(id => surveyorMap.get(id) || "").join(", ");
+        const namesB = (assignmentMap.get(b.id) || []).map(id => surveyorMap.get(id) || "").join(", ");
+        cmp = namesA.localeCompare(namesB);
         break;
       }
       case "zone": {
@@ -330,10 +343,9 @@ export default function Locations() {
   const handleBulkAssign = async (surveyorId: string) => {
     if (selectedIds.size === 0) return;
     const ids = Array.from(selectedIds);
-    const { error } = await supabase
-      .from("locations")
-      .update({ assigned_to: surveyorId })
-      .in("id", ids);
+    // Insert assignments (ignore duplicates via upsert-like approach)
+    const rows = ids.map(locId => ({ location_id: locId, user_id: surveyorId }));
+    const { error } = await supabase.from("location_assignments").upsert(rows, { onConflict: "location_id,user_id" });
     if (error) { toast.error(error.message); return; }
     const surveyor = surveyors.find((s) => s.user_id === surveyorId);
     toast.success(`Assigned ${ids.length} location(s) to ${surveyor?.full_name || "surveyor"}.`);
@@ -690,7 +702,11 @@ export default function Locations() {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      {loc.assigned_to ? surveyorMap.get(loc.assigned_to) || "Unknown" : <span className="text-muted-foreground/50">Unassigned</span>}
+                      {(() => {
+                        const ids = assignmentMap.get(loc.id) || [];
+                        if (ids.length === 0) return <span className="text-muted-foreground/50">Unassigned</span>;
+                        return ids.map(id => surveyorMap.get(id) || "Unknown").join(", ");
+                      })()}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
                       {new Date(loc.created_at).toLocaleDateString()}

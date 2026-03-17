@@ -43,7 +43,6 @@ interface Location {
   status: string;
   latitude: number | null;
   longitude: number | null;
-  assigned_to: string | null;
   zone_id: string | null;
   category: string | null;
   access_type: string | null;
@@ -68,7 +67,7 @@ export default function LocationDetailsPage() {
   const canEdit = hasRole("admin") || hasRole("surveyor");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
-  const [surveyorName, setSurveyorName] = useState<string | null>(null);
+  const [assignedSurveyors, setAssignedSurveyors] = useState<{ user_id: string; full_name: string }[]>([]);
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [surveyorMap, setSurveyorMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -97,7 +96,7 @@ export default function LocationDetailsPage() {
         navigate("/locations");
         return;
       }
-      setLocation(loc as Location);
+      setLocation(loc as unknown as Location);
 
       // Fetch zone name
       if (loc.zone_id) {
@@ -105,10 +104,15 @@ export default function LocationDetailsPage() {
         if (z) setZoneName(z.name);
       }
 
-      // Fetch assigned surveyor name
-      if (loc.assigned_to) {
-        const { data: p } = await supabase.from("profiles").select("full_name").eq("user_id", loc.assigned_to).single();
-        if (p) setSurveyorName(p.full_name);
+      // Fetch assigned surveyors via junction table
+      const { data: assignments } = await supabase
+        .from("location_assignments")
+        .select("user_id")
+        .eq("location_id", id);
+      if (assignments && assignments.length > 0) {
+        const userIds = assignments.map(a => a.user_id);
+        const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", userIds);
+        if (profiles) setAssignedSurveyors(profiles.map(p => ({ user_id: p.user_id, full_name: p.full_name || "Unnamed" })));
       }
 
       // Fetch surveys
@@ -339,7 +343,11 @@ export default function LocationDetailsPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Assigned To</dt>
-              <dd className="font-medium mt-0.5">{surveyorName || <span className="text-muted-foreground/50">Unassigned</span>}</dd>
+              <dd className="font-medium mt-0.5">
+                {assignedSurveyors.length > 0
+                  ? assignedSurveyors.map(s => s.full_name).join(", ")
+                  : <span className="text-muted-foreground/50">Unassigned</span>}
+              </dd>
             </div>
             {(location.latitude != null && location.longitude != null) && (
               <div>

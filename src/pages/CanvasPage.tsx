@@ -32,7 +32,6 @@ interface Location {
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
-  assigned_to: string | null;
   zone_id: string | null;
   category: string | null;
   access_type: string | null;
@@ -102,14 +101,12 @@ export default function CanvasPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, assigned_to, zone_id, category, access_type");
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, zone_id, category, access_type");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
 
-      const assignParam = searchParams.get("assign");
-      if (assignParam === "unassigned") query = query.is("assigned_to", null);
-      else if (assignParam && assignParam !== "all") query = query.eq("assigned_to", assignParam);
+      // Assignment filtering is now handled post-fetch via location_assignments table
 
       const zoneParam = searchParams.get("zone");
       if (zoneParam === "unzoned") query = query.is("zone_id", null);
