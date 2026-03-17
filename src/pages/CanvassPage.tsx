@@ -278,7 +278,7 @@ export default function CanvasPage() {
             <Button variant="outline" className="flex-1" onClick={() => { setFinished(false); setCurrentIndex(0); setReviews(new Map()); }}>
               Review Again
             </Button>
-            <Button className="flex-1" onClick={() => navigate("/canvas")}>
+            <Button className="flex-1" onClick={() => navigate("/canvass")}>
               Back to Locations
             </Button>
           </CardFooter>
