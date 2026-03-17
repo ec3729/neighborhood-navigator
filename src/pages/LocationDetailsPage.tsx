@@ -390,6 +390,12 @@ export default function LocationDetailsPage() {
                 <dd className="font-medium mt-0.5">{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</dd>
               </div>
             )}
+            {location.surveyed_at && (
+              <div>
+                <dt className="text-muted-foreground">Surveyed</dt>
+                <dd className="font-medium mt-0.5">{new Date(location.surveyed_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-muted-foreground">Added</dt>
               <dd className="font-medium mt-0.5">{new Date(location.created_at).toLocaleDateString()}</dd>
