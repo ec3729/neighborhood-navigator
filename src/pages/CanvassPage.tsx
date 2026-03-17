@@ -123,7 +123,7 @@ export default function CanvasPage() {
       const { data, error } = await query;
       if (error) { toast.error("Failed to load locations"); setLoading(false); return; }
       const raw = (data || []) as Location[];
-      setRawLocations(raw);
+      rawLocationsRef.current = raw;
       applySort(raw, sortMode);
       setLoading(false);
     };
