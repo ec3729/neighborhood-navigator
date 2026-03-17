@@ -6,7 +6,7 @@ const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/map", label: "Map", icon: Map },
   { to: "/locations", label: "List", icon: List },
-  { to: "/canvas", label: "Canvas", icon: ClipboardCheck },
+  { to: "/canvass", label: "Canvass", icon: ClipboardCheck },
   { to: "/settings", label: "More", icon: Menu },
 ];
 

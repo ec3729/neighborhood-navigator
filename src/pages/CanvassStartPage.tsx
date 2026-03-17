@@ -99,7 +99,7 @@ export default function CanvasStartPage() {
     if (selectedZone !== "all") params.set("zone", selectedZone);
     if (selectedStatus !== "all") params.set("status", selectedStatus);
     const qs = params.toString();
-    navigate(`/canvas/review${qs ? `?${qs}` : ""}`);
+    navigate(`/canvass/review${qs ? `?${qs}` : ""}`);
   };
 
   if (loading) {
@@ -121,7 +121,7 @@ export default function CanvasStartPage() {
 
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold font-display">Start Canvassing</h1>
-        <p className="text-muted-foreground text-sm">Pick a zone to review, or canvas all locations.</p>
+        <p className="text-muted-foreground text-sm">Pick a zone to review, or canvass all locations.</p>
       </div>
 
       {/* Status filter */}

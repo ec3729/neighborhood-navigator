@@ -412,8 +412,8 @@ export default function Locations() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold font-display">Locations</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/canvas")}>
-            <ClipboardList className="h-4 w-4 mr-2" /> Canvas
+          <Button variant="outline" onClick={() => navigate("/canvass")}>
+            <ClipboardList className="h-4 w-4 mr-2" /> Canvass
           </Button>
           {isAdmin && (
             <Dialog open={csvDialogOpen} onOpenChange={(open) => { setCsvDialogOpen(open); if (!open) { setParsedRows([]); setCsvErrors([]); } }}>

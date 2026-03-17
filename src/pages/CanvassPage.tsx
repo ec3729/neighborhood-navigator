@@ -18,7 +18,7 @@ import {
   SORT_MODE_LABELS,
   StreetGroupInfo,
   sortLocationsByStreetGroups,
-} from "@/lib/canvasSorting";
+} from "@/lib/canvassSorting";
 
 type LocationType = "residential" | "business" | "vacant" | "public_space";
 type LocationTypeNullable = LocationType | null;
@@ -242,10 +242,10 @@ export default function CanvasPage() {
   if (locations.length === 0) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center space-y-4">
-        <h1 className="text-2xl font-bold font-display">Canvas Review</h1>
+        <h1 className="text-2xl font-bold font-display">Canvass Review</h1>
         <p className="text-muted-foreground">No locations to review.</p>
-        <Button variant="outline" onClick={() => navigate("/canvas")}>
-          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Canvas
+        <Button variant="outline" onClick={() => navigate("/canvass")}>
+          <ChevronLeft className="h-4 w-4 mr-2" /> Back to Canvass
         </Button>
       </div>
     );
@@ -278,7 +278,7 @@ export default function CanvasPage() {
             <Button variant="outline" className="flex-1" onClick={() => { setFinished(false); setCurrentIndex(0); setReviews(new Map()); }}>
               Review Again
             </Button>
-            <Button className="flex-1" onClick={() => navigate("/canvas")}>
+            <Button className="flex-1" onClick={() => navigate("/canvass")}>
               Back to Locations
             </Button>
           </CardFooter>
@@ -291,7 +291,7 @@ export default function CanvasPage() {
     <div className="p-6 max-w-2xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/canvas")}>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/canvass")}>
           <ChevronLeft className="h-4 w-4 mr-1" /> Locations
         </Button>
         <div className="flex items-center gap-3">
@@ -300,7 +300,7 @@ export default function CanvasPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(SORT_MODE_LABELS).map(([k, v]) => (
+              {(Object.entries(SORT_MODE_LABELS) as [string, string][]).map(([k, v]) => (
                 <SelectItem key={k} value={k}>{v}</SelectItem>
               ))}
             </SelectContent>
