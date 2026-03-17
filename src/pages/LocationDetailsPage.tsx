@@ -178,12 +178,13 @@ export default function LocationDetailsPage() {
         status: editStatus as any,
         category: editCategory || null,
         access_type: editAccessType || null,
+        notes: editNotes.trim() || null,
         ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       } as any)
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
     setEditing(false);
     toast.success("Location updated");
   };
