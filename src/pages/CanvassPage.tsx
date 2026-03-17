@@ -291,7 +291,7 @@ export default function CanvasPage() {
     <div className="p-6 max-w-2xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/canvas")}>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/canvass")}>
           <ChevronLeft className="h-4 w-4 mr-1" /> Locations
         </Button>
         <div className="flex items-center gap-3">
