@@ -1,38 +1,32 @@
 
 
-## Admin Review Page
+## Data Management Page
 
 ### Overview
-Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
+Create a new admin-only "Data Management" page for importing and exporting location data as CSV files. Add it to the admin sidebar nav and routing.
 
-### Changes
+### New file: `src/pages/DataManagementPage.tsx`
+- Admin guard (redirect non-admins to dashboard)
+- Two main sections in Cards: **Export** and **Import**
 
-**New file: `src/pages/ReviewPage.tsx`**
-- Admin-only page (redirect non-admins to dashboard)
-- Fetch all locations with zone names and surveyor profiles
-- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
-- Clickable rows to navigate to location details
-- Filters:
-  - Text search (name/address)
-  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
-  - Type dropdown (All / Residential / Business / Vacant / Public Space)
-  - Zone dropdown
-  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
-- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
-- Pagination (25 per page, same pattern as Locations)
+**Export Section:**
+- "Export Locations" button that fetches all locations (with zone names) and downloads as CSV
+- Columns: Name, Address, Location Type, Status, Category, Access Type, Zone, Latitude, Longitude, Surveyed At, Updated At
+- Optional filters before export: Status, Type, Zone (reuse existing filter patterns)
+- Uses `Blob` + `URL.createObjectURL` for client-side CSV download
 
-**`src/components/AppSidebar.tsx`**
-- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
+**Import Section:**
+- File input accepting `.csv` files
+- Parse CSV client-side (simple comma-split with header row detection)
+- Preview table showing first 5 rows before confirming import
+- Expected CSV columns: `name`, `address`, `location_type`, `status`, `category`, `access_type`, `zone_name`, `latitude`, `longitude`
+- On confirm: look up zone IDs by name, then batch insert into `locations` table with `created_by` set to current user
+- Show success/error toast with count of imported rows
+- Validation: require `address` column, validate enum values for `location_type` and `status`
 
-**`src/components/MobileNav.tsx`**
-- No change needed (admin items aren't in mobile nav currently)
+### Navigation & Routing
 
-**`src/App.tsx`**
-- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
+**`src/components/AppSidebar.tsx`**: Add "Data" to `adminItems` with `Database` icon, linking to `/data`
 
-### Date Filter Implementation
-- Two date states: `dateFrom` and `dateTo`
-- Use the Shadcn Calendar in a Popover for each
-- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
-- A "Clear dates" button to reset
+**`src/App.tsx`**: Import `DataManagementPage`, add route `<Route path="/data" element={<DataManagementPage />} />` inside the AppLayout group
 
