@@ -112,6 +112,9 @@ export default function CanvasPage() {
       if (zoneParam === "unzoned") query = query.is("zone_id", null);
       else if (zoneParam && zoneParam !== "all") query = query.eq("zone_id", zoneParam);
 
+      const statusParam = searchParams.get("status");
+      if (statusParam && statusParam !== "all") query = query.eq("status", statusParam as SurveyStatus);
+
       query = query.order("created_at", { ascending: false });
 
       const { data, error } = await query;
