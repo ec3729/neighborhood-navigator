@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      airtable_config: {
+        Row: {
+          base_id: string
+          created_by: string
+          field_mapping: Json
+          id: string
+          last_synced_at: string | null
+          sync_enabled: boolean
+          table_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_id: string
+          created_by: string
+          field_mapping?: Json
+          id?: string
+          last_synced_at?: string | null
+          sync_enabled?: boolean
+          table_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_id?: string
+          created_by?: string
+          field_mapping?: Json
+          id?: string
+          last_synced_at?: string | null
+          sync_enabled?: boolean
+          table_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       location_assignments: {
         Row: {
           created_at: string
