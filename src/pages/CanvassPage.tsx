@@ -130,15 +130,26 @@ export default function CanvasPage() {
     fetchData();
   }, [searchParams]);
 
-  // Re-sort when mode changes
+  // Re-sort when mode changes — preserve progress
   useEffect(() => {
     if (rawLocationsRef.current.length > 0) {
-      applySort(rawLocationsRef.current, sortMode);
-      setCurrentIndex(0);
-      setReviews(new Map());
-      setFinished(false);
+      const currentId = locations[currentIndex]?.id;
+      // Compute new sorted list to find the current location's new index
+      let newList: Location[];
+      if (sortMode === "street_groups") {
+        const { sorted, groupInfo } = sortLocationsByStreetGroups(rawLocationsRef.current);
+        newList = sorted;
+        setLocations(sorted);
+        setGroupInfoList(groupInfo);
+      } else {
+        newList = rawLocationsRef.current;
+        setLocations(rawLocationsRef.current);
+        setGroupInfoList([]);
+      }
+      const newIdx = currentId ? newList.findIndex((l) => l.id === currentId) : 0;
+      setCurrentIndex(newIdx >= 0 ? newIdx : 0);
     }
-  }, [sortMode, applySort]);
+  }, [sortMode]);
 
   // Sync editable fields when index changes
   useEffect(() => {
