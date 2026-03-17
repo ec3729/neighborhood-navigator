@@ -269,6 +269,8 @@ export default function DataManagementPage() {
           )}
         </CardContent>
       </Card>
+      {/* Airtable */}
+      <AirtableCard />
     </div>
   );
 }
