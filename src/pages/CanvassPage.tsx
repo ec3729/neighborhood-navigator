@@ -205,6 +205,7 @@ export default function CanvasPage() {
         zone_id: editZoneId === "none" ? null : editZoneId,
         category: editCategory || null,
         access_type: editAccessType || null,
+        notes: editNotes.trim() || null,
         ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       })
       .eq("id", current.id);
