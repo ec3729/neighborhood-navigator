@@ -31,7 +31,6 @@ interface Location {
   status: SurveyStatus;
   latitude: number | null;
   longitude: number | null;
-  assigned_to: string | null;
   zone_id: string | null;
   created_at: string;
 }
