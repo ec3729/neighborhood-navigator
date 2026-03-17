@@ -1,46 +1,27 @@
 
 
-## Add "Canvas" Mode for Location Review
+## Add Canvas Start Page (Zone Picker)
 
-Create a full-screen, card-based review flow that lets users step through locations one at a time, verify the data, and optionally update fields inline before moving to the next record.
+### Overview
+Insert a new "start" screen at `/canvas` that lets canvassers pick a zone before entering the card-based review flow. The existing card review moves to `/canvas/review`.
 
-### How It Works
+### Changes
 
-1. User clicks a **"Canvas"** button on the Locations page (next to Add Location)
-2. Opens a new page (`/canvas`) showing one location at a time as a large card
-3. The card displays: name, address, type, status, assigned surveyor, and coordinates
-4. User can either:
-   - Click **"Looks Good"** to confirm and move to the next location
-   - Edit any field inline and click **"Save & Next"** to update and advance
-   - Click **"Skip"** to move on without changes
-5. A progress bar at the top shows how many locations have been reviewed
-6. When all locations are reviewed, a summary screen shows counts of confirmed vs. updated records
+**New file: `src/pages/CanvasStartPage.tsx`**
+- Full-page screen with heading "Start Canvassing"
+- Fetches zones from database, displays them as selectable cards (name + location count via a count query)
+- An "All Locations" option for no zone filter
+- "Start" button navigates to `/canvas/review?zone={selectedZoneId}` (preserving any existing type/assign params if added later)
 
-### What Gets Built
+**`src/App.tsx`**
+- Import `CanvasStartPage`
+- Change `/canvas` route to render `CanvasStartPage`
+- Add `/canvas/review` route rendering the existing `CanvasPage`
 
-**New file: `src/pages/CanvasPage.tsx`**
-- Fetches all locations (respects current filters passed via URL search params or reviews all)
-- Maintains a `currentIndex` state to track position in the list
-- Displays an editable card with fields: name, address, location_type, status
-- "Looks Good" button marks as reviewed (local tracking only, no DB column needed)
-- "Save & Next" button updates the location in the database, then advances
-- "Skip" button advances without action
-- Progress bar using the existing Progress component
-- Summary card at the end with stats
+**`src/pages/CanvasPage.tsx`**
+- No functional changes — it already reads `zone` from search params
+- Update the "Back to Locations" button to go back to `/canvas` instead of `/locations`
 
-**Modified: `src/pages/Locations.tsx`**
-- Add a "Canvas" button in the header bar (using a ClipboardList or Play icon)
-- Links to `/canvas` via `useNavigate`
-
-**Modified: `src/App.tsx`**
-- Add route: `<Route path="/canvas" element={<CanvasPage />} />` inside the AppLayout group
-
-### Technical Details
-
-- No database changes needed -- canvas mode reads/updates existing `locations` table
-- Uses existing RLS policies (surveyors and admins can update)
-- Editable fields use existing Input, Select, and Badge components
-- Navigation via keyboard shortcuts (left/right arrows) for power users
-- The canvas respects the same filters (type, assignment) if passed as query params, otherwise reviews all locations
-- Mobile-friendly single-card layout
+**`src/pages/Locations.tsx`**
+- Update Canvas button to navigate to `/canvas` (no query params — the start page handles selection)
 
