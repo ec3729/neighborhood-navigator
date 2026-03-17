@@ -8,7 +8,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/map", label: "Map View", icon: Map },
   { to: "/locations", label: "Locations", icon: List },
-  { to: "/canvas", label: "Canvas", icon: ClipboardCheck },
+  { to: "/canvass", label: "Canvass", icon: ClipboardCheck },
 ];
 
 const adminItems = [
