@@ -273,9 +273,9 @@ export default function Locations() {
         cmp = a.status.localeCompare(b.status);
         break;
       case "assigned_to": {
-        const nameA = a.assigned_to ? surveyorMap.get(a.assigned_to) || "" : "";
-        const nameB = b.assigned_to ? surveyorMap.get(b.assigned_to) || "" : "";
-        cmp = nameA.localeCompare(nameB);
+        const namesA = (assignmentMap.get(a.id) || []).map(id => surveyorMap.get(id) || "").join(", ");
+        const namesB = (assignmentMap.get(b.id) || []).map(id => surveyorMap.get(id) || "").join(", ");
+        cmp = namesA.localeCompare(namesB);
         break;
       }
       case "zone": {
