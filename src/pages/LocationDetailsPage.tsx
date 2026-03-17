@@ -349,7 +349,6 @@ export default function LocationDetailsPage() {
                   : <span className="text-muted-foreground/50">Unassigned</span>}
               </dd>
             </div>
-            </div>
             {(location.latitude != null && location.longitude != null) && (
               <div>
                 <dt className="text-muted-foreground">Coordinates</dt>
