@@ -1,38 +1,37 @@
 
 
-## Admin Review Page
+## Bug: Canvass session progress resets on every confirm/save
 
-### Overview
-Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
+### Root Cause
 
-### Changes
+The re-sort `useEffect` on line 134-141 has `rawLocations` in its dependency array:
 
-**New file: `src/pages/ReviewPage.tsx`**
-- Admin-only page (redirect non-admins to dashboard)
-- Fetch all locations with zone names and surveyor profiles
-- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
-- Clickable rows to navigate to location details
-- Filters:
-  - Text search (name/address)
-  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
-  - Type dropdown (All / Residential / Business / Vacant / Public Space)
-  - Zone dropdown
-  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
-- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
-- Pagination (25 per page, same pattern as Locations)
+```javascript
+useEffect(() => {
+  if (rawLocations.length > 0) {
+    applySort(rawLocations, sortMode);
+    setCurrentIndex(0);      // ← resets position to first card
+    setReviews(new Map());   // ← wipes all review progress
+    setFinished(false);
+  }
+}, [sortMode, applySort, rawLocations]);  // ← rawLocations triggers this
+```
 
-**`src/components/AppSidebar.tsx`**
-- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
+Every time `handleConfirm` or `handleSaveAndNext` calls `setRawLocations(...)` to keep the raw data in sync, this effect fires. It resets `currentIndex` to 0 and clears the `reviews` Map — which is why the reviewed count drops back to zero and the card jumps back to the start.
 
-**`src/components/MobileNav.tsx`**
-- No change needed (admin items aren't in mobile nav currently)
+### Fix
 
-**`src/App.tsx`**
-- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
+**Separate the re-sort effect from the data-sync updates.** The re-sort + reset should only happen when `sortMode` changes, not when individual location properties are updated in-place.
 
-### Date Filter Implementation
-- Two date states: `dateFrom` and `dateTo`
-- Use the Shadcn Calendar in a Popover for each
-- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
-- A "Clear dates" button to reset
+1. **Remove `rawLocations` from the re-sort effect's dependency array** — make it only respond to `sortMode` changes by using a ref for rawLocations or restructuring the effect.
+
+2. **Use a `useRef` for rawLocations** to hold the current data without triggering the effect. The re-sort effect reads from the ref, and `sortMode` remains the only trigger for the reset.
+
+3. **Update `handleConfirm` and `handleSaveAndNext`** to update both `locations` and the ref in-place (as they already do for `locations`) without triggering a re-sort. The existing `setLocations(prev => prev.map(...))` calls are correct — they just shouldn't also trigger the re-sort effect.
+
+4. **For the status badge on the current card**: it shows `current.status` which reflects the pre-update value until re-render. Since `advance()` is called immediately after `setLocations`, the user moves to the next card before seeing the updated badge. This is acceptable behavior, but the status in the progress summary at the end will be correct.
+
+### Files Changed
+
+- `src/pages/CanvassPage.tsx` — refactor rawLocations to a ref, restrict re-sort effect to `sortMode` changes only
 
