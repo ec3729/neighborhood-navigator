@@ -13,6 +13,7 @@ import MapView from "./pages/MapView";
 import TeamPage from "./pages/TeamPage";
 import SettingsPage from "./pages/SettingsPage";
 import CanvasPage from "./pages/CanvasPage";
+import CanvasStartPage from "./pages/CanvasStartPage";
 import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailsPage from "./pages/ZoneDetailsPage";
 import LocationDetailsPage from "./pages/LocationDetailsPage";
