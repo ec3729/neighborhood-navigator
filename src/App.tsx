@@ -18,6 +18,7 @@ import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailsPage from "./pages/ZoneDetailsPage";
 import LocationDetailsPage from "./pages/LocationDetailsPage";
 import ReviewPage from "./pages/ReviewPage";
+import DataManagementPage from "./pages/DataManagementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/zones" element={<ZonesPage />} />
               <Route path="/zones/:id" element={<ZoneDetailsPage />} />
               <Route path="/review" element={<ReviewPage />} />
+              <Route path="/data" element={<DataManagementPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
