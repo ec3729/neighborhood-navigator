@@ -1,4 +1,4 @@
-import { Polygon, Tooltip } from "react-leaflet";
+import { Polygon, Tooltip, LayerGroup } from "react-leaflet";
 
 interface ZoneData {
   id: string;
