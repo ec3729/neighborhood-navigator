@@ -45,6 +45,7 @@ const App = () => (
               <Route path="/zones" element={<ZonesPage />} />
               <Route path="/zones/:id" element={<ZoneDetailsPage />} />
               <Route path="/review" element={<ReviewPage />} />
+              <Route path="/data" element={<DataManagementPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

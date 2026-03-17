@@ -15,6 +15,7 @@ const adminItems = [
   { to: "/team", label: "Team", icon: Users },
   { to: "/zones", label: "Zones", icon: Layers },
   { to: "/review", label: "Review", icon: FileSearch },
+  { to: "/data", label: "Data", icon: Database },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
