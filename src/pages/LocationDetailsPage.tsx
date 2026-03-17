@@ -67,7 +67,7 @@ export default function LocationDetailsPage() {
   const canEdit = hasRole("admin") || hasRole("surveyor");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
-  const [surveyorName, setSurveyorName] = useState<string | null>(null);
+  const [assignedSurveyors, setAssignedSurveyors] = useState<{ user_id: string; full_name: string }[]>([]);
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [surveyorMap, setSurveyorMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
