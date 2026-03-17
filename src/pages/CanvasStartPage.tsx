@@ -141,7 +141,7 @@ export default function CanvasStartPage() {
                 <p className="text-xs text-muted-foreground">Every location in the database</p>
               </div>
             </div>
-            <Badge variant="secondary">{totalCount}</Badge>
+            <Badge variant="secondary">{getFilteredCount("all")}</Badge>
           </CardContent>
         </Card>
 
