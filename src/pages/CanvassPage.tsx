@@ -254,10 +254,8 @@ export default function CanvasPage() {
           reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
         )
       );
-      setRawLocations((prev) =>
-        prev.map((l) =>
-          reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
-        )
+      rawLocationsRef.current = rawLocationsRef.current.map((l) =>
+        reviewedIds.includes(l.id) ? { ...l, status: "surveyed" as SurveyStatus, surveyed_at: now } : l
       );
       toast.success(`${reviewedIds.length} location(s) marked as surveyed`);
     };
