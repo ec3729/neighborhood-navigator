@@ -78,6 +78,7 @@ export default function CanvasPage() {
   const [editZoneId, setEditZoneId] = useState<string>("none");
   const [editCategory, setEditCategory] = useState<string>("");
   const [editAccessType, setEditAccessType] = useState<string>("");
+  const [editNotes, setEditNotes] = useState<string>("");
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   // Review tracking
