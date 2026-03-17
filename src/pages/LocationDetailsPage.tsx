@@ -182,6 +182,21 @@ export default function LocationDetailsPage() {
     toast.success("Location updated");
   };
 
+  const handleRemoveAssignee = async (userId: string, name: string) => {
+    if (!id) return;
+    const { error } = await supabase
+      .from("location_assignments")
+      .delete()
+      .eq("location_id", id)
+      .eq("user_id", userId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setAssignedSurveyors((prev) => prev.filter((s) => s.user_id !== userId));
+    toast.success(`Removed ${name}`);
+  };
+
   if (!location) return null;
 
   return (
