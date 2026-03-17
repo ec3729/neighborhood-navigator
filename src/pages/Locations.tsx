@@ -343,10 +343,9 @@ export default function Locations() {
   const handleBulkAssign = async (surveyorId: string) => {
     if (selectedIds.size === 0) return;
     const ids = Array.from(selectedIds);
-    const { error } = await supabase
-      .from("locations")
-      .update({ assigned_to: surveyorId })
-      .in("id", ids);
+    // Insert assignments (ignore duplicates via upsert-like approach)
+    const rows = ids.map(locId => ({ location_id: locId, user_id: surveyorId }));
+    const { error } = await supabase.from("location_assignments").upsert(rows, { onConflict: "location_id,user_id" });
     if (error) { toast.error(error.message); return; }
     const surveyor = surveyors.find((s) => s.user_id === surveyorId);
     toast.success(`Assigned ${ids.length} location(s) to ${surveyor?.full_name || "surveyor"}.`);
