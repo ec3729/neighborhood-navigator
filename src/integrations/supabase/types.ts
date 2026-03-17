@@ -56,6 +56,7 @@ export type Database = {
           longitude: number | null
           name: string | null
           status: Database["public"]["Enums"]["survey_status"]
+          surveyed_at: string | null
           updated_at: string
           zone_id: string | null
         }
@@ -71,6 +72,7 @@ export type Database = {
           longitude?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
+          surveyed_at?: string | null
           updated_at?: string
           zone_id?: string | null
         }
@@ -86,6 +88,7 @@ export type Database = {
           longitude?: number | null
           name?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
+          surveyed_at?: string | null
           updated_at?: string
           zone_id?: string | null
         }
