@@ -65,6 +65,7 @@ export default function LocationDetailsPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const canEdit = hasRole("admin") || hasRole("surveyor");
+  const canManageAssignees = hasRole("admin");
   const [location, setLocation] = useState<Location | null>(null);
   const [zoneName, setZoneName] = useState<string | null>(null);
   const [assignedSurveyors, setAssignedSurveyors] = useState<{ user_id: string; full_name: string }[]>([]);
