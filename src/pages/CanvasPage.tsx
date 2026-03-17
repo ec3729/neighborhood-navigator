@@ -106,9 +106,7 @@ export default function CanvasPage() {
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
 
-      const assignParam = searchParams.get("assign");
-      if (assignParam === "unassigned") query = query.is("assigned_to", null);
-      else if (assignParam && assignParam !== "all") query = query.eq("assigned_to", assignParam);
+      // Assignment filtering is now handled post-fetch via location_assignments table
 
       const zoneParam = searchParams.get("zone");
       if (zoneParam === "unzoned") query = query.is("zone_id", null);
