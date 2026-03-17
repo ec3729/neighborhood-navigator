@@ -225,7 +225,7 @@ export default function CanvasPage() {
 
     const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: autoStatus as SurveyStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
-    setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
+    rawLocationsRef.current = rawLocationsRef.current.map((l) => l.id === current.id ? updatedLoc : l);
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
     toast.success("Saved");
     advance();
