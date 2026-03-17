@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,6 +47,7 @@ interface Location {
   zone_id: string | null;
   category: string | null;
   access_type: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   surveyed_at: string | null;
@@ -82,6 +84,7 @@ export default function LocationDetailsPage() {
   const [editStatus, setEditStatus] = useState("not_surveyed");
   const [editCategory, setEditCategory] = useState("");
   const [editAccessType, setEditAccessType] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -153,6 +156,7 @@ export default function LocationDetailsPage() {
     setEditType(location.location_type || "residential");
     setEditCategory(location.category || "");
     setEditAccessType(location.access_type || "");
+    setEditNotes(location.notes || "");
     setEditStatus(location.status);
     setEditing(true);
   };
@@ -174,12 +178,13 @@ export default function LocationDetailsPage() {
         status: editStatus as any,
         category: editCategory || null,
         access_type: editAccessType || null,
+        notes: editNotes.trim() || null,
         ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       } as any)
       .eq("id", location.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
+    setLocation({ ...location, name: editName.trim() || null, address: editAddress.trim(), location_type: editType, status: editStatus, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null, surveyed_at: editStatus === "surveyed" ? new Date().toISOString() : location.surveyed_at });
     setEditing(false);
     toast.success("Location updated");
   };
@@ -341,6 +346,16 @@ export default function LocationDetailsPage() {
                   </Select>
                 ) : (
                   <span className="font-medium">{location.access_type || <span className="text-muted-foreground/50">—</span>}</span>
+                )}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">Notes</dt>
+              <dd className="mt-0.5">
+                {editing ? (
+                  <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Add notes..." rows={3} />
+                ) : (
+                  <span className="font-medium whitespace-pre-wrap">{location.notes || <span className="text-muted-foreground/50">—</span>}</span>
                 )}
               </dd>
             </div>

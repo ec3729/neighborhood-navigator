@@ -1,31 +1,38 @@
 
 
-## Add Notes Field to Locations
+## Admin Review Page
 
-### What
-Add a `notes` text column to the `locations` table so admins and canvassers can capture freeform notes. Display and edit notes on the Location Details page and in the Canvass review cards.
+### Overview
+Create a new admin-only "Review" page that displays all locations in a table with comprehensive filtering and sorting, including a date range picker to filter by `updated_at`. Add it to the admin sidebar nav and routing.
 
-### Database
-- Add `notes text nullable` column to `locations` table via migration
-- Existing RLS policies already allow surveyors to create and admins/creators to update locations, so no policy changes needed
+### Changes
 
-### Code Changes
+**New file: `src/pages/ReviewPage.tsx`**
+- Admin-only page (redirect non-admins to dashboard)
+- Fetch all locations with zone names and surveyor profiles
+- Table columns: Name, Address, Type, Status, Zone, Updated At, Surveyed At
+- Clickable rows to navigate to location details
+- Filters:
+  - Text search (name/address)
+  - Status dropdown (All / Not Surveyed / In Progress / Surveyed)
+  - Type dropdown (All / Residential / Business / Vacant / Public Space)
+  - Zone dropdown
+  - Date range picker for `updated_at` (using Popover + Calendar with "from" and "to" dates)
+- Sorting: clickable column headers with asc/desc toggle (reuse the ArrowUpDown pattern from Locations page)
+- Pagination (25 per page, same pattern as Locations)
 
-**`src/pages/LocationDetailsPage.tsx`**
-- Add `notes` to the Location interface and the select query
-- Add an editable Notes section (textarea) alongside the existing inline-edit fields
+**`src/components/AppSidebar.tsx`**
+- Add "Review" to the `adminItems` array with `Eye` or `FileSearch` icon, linking to `/review`
 
-**`src/pages/CanvassPage.tsx`**
-- Add `notes` to the Location interface and select query
-- Add `editNotes` state and a Textarea field on the canvass card
-- Include `notes` in the `isDirty` check and the save/update logic
-- Canvassers can type notes during review and save them with "Save & Next"
+**`src/components/MobileNav.tsx`**
+- No change needed (admin items aren't in mobile nav currently)
 
-**`src/pages/Locations.tsx`** (if it selects location fields)
-- Add `notes` to the select query so it's available if needed
+**`src/App.tsx`**
+- Import `ReviewPage` and add route: `<Route path="/review" element={<ReviewPage />} />`  inside the `AppLayout` group
 
-### UI
-- Notes field uses a `<Textarea>` component with placeholder "Add notes..."
-- Placed below Access Type on both the detail page and canvass card
-- Full width, 3-4 rows default height
+### Date Filter Implementation
+- Two date states: `dateFrom` and `dateTo`
+- Use the Shadcn Calendar in a Popover for each
+- Filter logic: if `dateFrom` is set, only show locations where `updated_at >= dateFrom`; if `dateTo` is set, only show where `updated_at <= end of dateTo day`
+- A "Clear dates" button to reset
 

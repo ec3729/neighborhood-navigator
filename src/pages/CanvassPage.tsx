@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ interface Location {
   zone_id: string | null;
   category: string | null;
   access_type: string | null;
+  notes: string | null;
 }
 
 interface Zone {
@@ -76,6 +78,7 @@ export default function CanvasPage() {
   const [editZoneId, setEditZoneId] = useState<string>("none");
   const [editCategory, setEditCategory] = useState<string>("");
   const [editAccessType, setEditAccessType] = useState<string>("");
+  const [editNotes, setEditNotes] = useState<string>("");
   const [categoryOpen, setCategoryOpen] = useState(false);
 
   // Review tracking
@@ -101,7 +104,7 @@ export default function CanvasPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name").order("name");
       if (zonesData) setZones(zonesData as Zone[]);
 
-      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, zone_id, category, access_type");
+      let query = supabase.from("locations").select("id, name, address, location_type, status, latitude, longitude, zone_id, category, access_type, notes");
 
       const typeParam = searchParams.get("type");
       if (typeParam && typeParam !== "all") query = query.eq("location_type", typeParam as LocationType);
@@ -148,6 +151,7 @@ export default function CanvasPage() {
     setEditZoneId(loc.zone_id || "none");
     setEditCategory(loc.category || "");
     setEditAccessType(loc.access_type || "");
+    setEditNotes(loc.notes || "");
   }, [currentIndex, locations]);
 
   const current = locations[currentIndex] as Location | undefined;
@@ -160,7 +164,8 @@ export default function CanvasPage() {
       editStatus !== current.status ||
       (editZoneId === "none" ? null : editZoneId) !== current.zone_id ||
       (editCategory || null) !== (current.category || null) ||
-      (editAccessType || null) !== (current.access_type || null)
+      (editAccessType || null) !== (current.access_type || null) ||
+      (editNotes || null) !== (current.notes || null)
     : false;
 
   const advance = useCallback(() => {
@@ -200,13 +205,14 @@ export default function CanvasPage() {
         zone_id: editZoneId === "none" ? null : editZoneId,
         category: editCategory || null,
         access_type: editAccessType || null,
+        notes: editNotes.trim() || null,
         ...(editStatus === "surveyed" ? { surveyed_at: new Date().toISOString() } : {}),
       })
       .eq("id", current.id);
     setSaving(false);
     if (error) { toast.error("Failed to save: " + error.message); return; }
 
-    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null };
+    const updatedLoc = { ...current, name: editName.trim() || null, address: editAddress, location_type: editType, status: editStatus, zone_id: editZoneId === "none" ? null : editZoneId, category: editCategory || null, access_type: editAccessType || null, notes: editNotes.trim() || null };
     setLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setRawLocations((prev) => prev.map((l) => l.id === current.id ? updatedLoc : l));
     setReviews((prev) => new Map(prev).set(current.id, "updated"));
@@ -418,6 +424,10 @@ export default function CanvasPage() {
                   <SelectItem value="Mixed">Mixed</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Add notes..." rows={3} />
             </div>
             <div className="space-y-2">
               <Label>Zone</Label>

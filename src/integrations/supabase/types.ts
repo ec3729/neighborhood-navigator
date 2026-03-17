@@ -88,6 +88,7 @@ export type Database = {
           location_type: Database["public"]["Enums"]["location_type"] | null
           longitude: number | null
           name: string | null
+          notes: string | null
           status: Database["public"]["Enums"]["survey_status"]
           surveyed_at: string | null
           updated_at: string
@@ -104,6 +105,7 @@ export type Database = {
           location_type?: Database["public"]["Enums"]["location_type"] | null
           longitude?: number | null
           name?: string | null
+          notes?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           surveyed_at?: string | null
           updated_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           location_type?: Database["public"]["Enums"]["location_type"] | null
           longitude?: number | null
           name?: string | null
+          notes?: string | null
           status?: Database["public"]["Enums"]["survey_status"]
           surveyed_at?: string | null
           updated_at?: string
