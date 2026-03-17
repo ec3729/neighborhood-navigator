@@ -14,11 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      location_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_assignments_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           access_type: string | null
           address: string
-          assigned_to: string | null
           category: string | null
           created_at: string
           created_by: string
@@ -34,7 +62,6 @@ export type Database = {
         Insert: {
           access_type?: string | null
           address: string
-          assigned_to?: string | null
           category?: string | null
           created_at?: string
           created_by: string
@@ -50,7 +77,6 @@ export type Database = {
         Update: {
           access_type?: string | null
           address?: string
-          assigned_to?: string | null
           category?: string | null
           created_at?: string
           created_by?: string
