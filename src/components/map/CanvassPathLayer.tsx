@@ -1,4 +1,4 @@
-import { Polyline, CircleMarker, Tooltip } from "react-leaflet";
+import { Polyline, CircleMarker, Tooltip, LayerGroup } from "react-leaflet";
 import { sortLocationsByStreetGroups } from "@/lib/canvassSorting";
 
 interface Location {
