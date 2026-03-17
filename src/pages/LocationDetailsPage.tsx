@@ -344,10 +344,27 @@ export default function LocationDetailsPage() {
             </div>
             <div>
               <dt className="text-muted-foreground">Assigned To</dt>
-              <dd className="font-medium mt-0.5">
-                {assignedSurveyors.length > 0
-                  ? assignedSurveyors.map(s => s.full_name).join(", ")
-                  : <span className="text-muted-foreground/50">Unassigned</span>}
+              <dd className="mt-0.5">
+                {assignedSurveyors.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {assignedSurveyors.map((s) => (
+                      <Badge key={s.user_id} variant="secondary" className="gap-1 pr-1.5">
+                        {s.full_name}
+                        {canManageAssignees && (
+                          <button
+                            onClick={() => handleRemoveAssignee(s.user_id, s.full_name)}
+                            className="ml-0.5 rounded-full hover:bg-destructive/20 p-0.5"
+                            aria-label={`Remove ${s.full_name}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground/50 font-medium">Unassigned</span>
+                )}
               </dd>
             </div>
             {(location.latitude != null && location.longitude != null) && (
