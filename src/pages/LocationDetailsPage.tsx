@@ -84,6 +84,7 @@ export default function LocationDetailsPage() {
   const [editStatus, setEditStatus] = useState("not_surveyed");
   const [editCategory, setEditCategory] = useState("");
   const [editAccessType, setEditAccessType] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
