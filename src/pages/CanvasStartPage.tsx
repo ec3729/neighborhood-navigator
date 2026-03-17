@@ -37,17 +37,27 @@ export default function CanvasStartPage() {
       const { data: zonesData } = await supabase.from("zones").select("id, name, description").order("name");
 
       // Fetch all locations to compute counts
-      const { data: locations } = await supabase.from("locations").select("zone_id");
+      const { data: locations } = await supabase.from("locations").select("zone_id, status");
 
       const zoneCounts = new Map<string, number>();
+      const zoneStatusCounts = new Map<string, Map<string, number>>();
       let unzoned = 0;
+      let unzonedByStatus = new Map<string, number>();
+      const totalByStatus = new Map<string, number>();
       const total = locations?.length || 0;
 
       for (const loc of locations || []) {
+        // Total by status
+        totalByStatus.set(loc.status, (totalByStatus.get(loc.status) || 0) + 1);
+
         if (loc.zone_id) {
           zoneCounts.set(loc.zone_id, (zoneCounts.get(loc.zone_id) || 0) + 1);
+          if (!zoneStatusCounts.has(loc.zone_id)) zoneStatusCounts.set(loc.zone_id, new Map());
+          const zsc = zoneStatusCounts.get(loc.zone_id)!;
+          zsc.set(loc.status, (zsc.get(loc.status) || 0) + 1);
         } else {
           unzoned++;
+          unzonedByStatus.set(loc.status, (unzonedByStatus.get(loc.status) || 0) + 1);
         }
       }
 
