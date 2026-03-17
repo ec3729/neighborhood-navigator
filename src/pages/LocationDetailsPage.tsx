@@ -48,6 +48,7 @@ interface Location {
   access_type: string | null;
   created_at: string;
   updated_at: string;
+  surveyed_at: string | null;
 }
 
 interface Survey {
