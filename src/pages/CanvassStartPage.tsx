@@ -99,7 +99,7 @@ export default function CanvasStartPage() {
     if (selectedZone !== "all") params.set("zone", selectedZone);
     if (selectedStatus !== "all") params.set("status", selectedStatus);
     const qs = params.toString();
-    navigate(`/canvas/review${qs ? `?${qs}` : ""}`);
+    navigate(`/canvass/review${qs ? `?${qs}` : ""}`);
   };
 
   if (loading) {
