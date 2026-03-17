@@ -218,7 +218,7 @@ export default function MapView() {
 
             <LayersControl position="topright">
               <LayersControl.Overlay name="Status Pins" checked>
-                <>{/* Workaround: wrap in fragment for layer control */}
+                <LayerGroup>
                   {withCoords.map((loc) => (
                     <CircleMarker
                       key={loc.id}
