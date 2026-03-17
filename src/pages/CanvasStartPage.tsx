@@ -4,7 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, MapPin, Play, Globe } from "lucide-react";
+import { ChevronLeft, MapPin, Play, Globe, Filter } from "lucide-react";
+
+type SurveyStatus = "not_surveyed" | "in_progress" | "surveyed";
+
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "all", label: "All Statuses" },
+  { value: "not_surveyed", label: "Not Surveyed" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "surveyed", label: "Surveyed" },
+];
 
 interface ZoneOption {
   id: string;
