@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Download, Upload, FileUp, Loader2, AlertCircle } from "lucide-react";
+import AirtableCard from "@/components/AirtableCard";
 
 const VALID_LOCATION_TYPES = ["residential", "business", "vacant", "public_space"];
 const VALID_STATUSES = ["not_surveyed", "in_progress", "surveyed"];
