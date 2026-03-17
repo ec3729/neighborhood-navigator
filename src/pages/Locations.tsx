@@ -243,7 +243,7 @@ export default function Locations() {
     const matchesType = typeFilter === "all" || l.location_type === typeFilter;
     const matchesAssign =
       assignFilter === "all" ||
-      (assignFilter === "unassigned" ? !l.assigned_to : l.assigned_to === assignFilter);
+      (assignFilter === "unassigned" ? !(assignmentMap.get(l.id)?.length) : (assignmentMap.get(l.id) || []).includes(assignFilter));
     const matchesZone =
       zoneFilter === "all" ||
       (zoneFilter === "unzoned" ? !l.zone_id : l.zone_id === zoneFilter);
