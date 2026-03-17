@@ -47,6 +47,7 @@ interface Location {
   zone_id: string | null;
   category: string | null;
   access_type: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   surveyed_at: string | null;
